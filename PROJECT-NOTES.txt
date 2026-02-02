@@ -1,0 +1,49 @@
+Medical Director Report APP - Project Notes
+============================================
+PostAcuteNC
+
+Status: Active Development
+Last Updated: January 2026
+
+MAIN APPLICATION FILE:
+- medical-directorship-billing.html
+
+CURRENT FEATURES:
+- Provider & Facility management with email addresses
+- Task categories (7 categories) for medical director duties
+- Manual report creation with task logging
+- Auto Report Generator with:
+  - Visit date selection
+  - QAPI meeting tracking
+  - Survey participation tracking
+  - Even task distribution across visit dates
+  - Provider signature mapping
+  - Variation check: avoids identical reports by comparing to last 3 reports for same facility
+- Draft vs Complete report workflow
+- PDF download with full task descriptions
+- Email report via mailto link
+- Password protection for Settings (PostAcute2026)
+- Report History with view/edit/delete/email actions
+
+PROVIDER SIGNATURES MAPPING:
+- Jose Gonzalez MD → Jose E Gonzalez MD
+- Eileen Caquias Gonzalez MD → Eileen Caquias Gonzalez MD
+
+USER REQUIREMENTS:
+- Users: Both office staff and providers will access
+- Scale: 2 providers with 4-5 facilities each (may grow)
+- Priority features: Data backup/export, Multi-user accounts
+
+PARKED TASKS (Future - Priority Order):
+1. Add data backup/export functionality
+2. Implement multi-user accounts with role-based access
+3. Publish to GitHub / GitHub Pages
+4. Set up EmailJS for automatic report notifications
+5. Create reports@postacutenc.com email account
+
+TECHNICAL NOTES:
+- Single HTML file with embedded CSS/JS
+- Uses localStorage for data persistence
+- Uses jsPDF library for PDF generation
+- Month parsing done manually to avoid UTC timezone issues
+- Report IDs compared as strings to avoid precision issues
