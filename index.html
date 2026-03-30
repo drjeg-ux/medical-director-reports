@@ -393,70 +393,6 @@
             opacity: 0.3;
         }
 
-        /* Password Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-box {
-            background: white;
-            padding: 32px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-box h3 {
-            color: #111827;
-            margin-bottom: 8px;
-            font-size: 20px;
-        }
-
-        .modal-box p {
-            color: #6B7280;
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        .modal-box input[type="password"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #E5E7EB;
-            border-radius: 8px;
-            font-size: 15px;
-            margin-bottom: 20px;
-        }
-
-        .modal-box input[type="password"]:focus {
-            outline: none;
-            border-color: #14B8A6;
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .modal-buttons .button {
-            flex: 1;
-            margin: 0;
-        }
-
         /* Password Modal Styles */
         .modal-overlay {
             display: none;
@@ -977,6 +913,178 @@
         <div id="settings-tab" class="tab-content">
             <h2 style="margin-bottom: 20px; color: #2d3748;">System Settings</h2>
             
+            <!-- AUTO GENERATOR SECTION -->
+            <div class="settings-card" style="margin-bottom: 24px; border: 2px solid #14B8A6; background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);">
+                <h3>🤖 Auto-Generate Report</h3>
+                <p style="color: #6B7280; margin-bottom: 20px; font-size: 14px;">Automatically generate a compliant medical director report</p>
+                
+                <div id="autoGenStep1">
+                    <div class="form-group">
+                        <label>Select Provider</label>
+                        <select id="autoProvider" onchange="updateAutoFacilityList()">
+                            <option value="">Select Provider</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Select Facility</label>
+                        <select id="autoFacility" onchange="updateAutoFacilityHours()">
+                            <option value="">Select Facility</option>
+                        </select>
+                    </div>
+                    
+                    <div id="autoFacilityInfo" style="display: none; padding: 12px; background: white; border-radius: 8px; margin-bottom: 20px;">
+                        <strong>Required Hours:</strong> <span id="autoRequiredHours">0</span> hours/month
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Select Month</label>
+                        <select id="autoMonth">
+                            <option value="">Select Month</option>
+                        </select>
+                    </div>
+                    
+                    <button class="button" onclick="goToAutoStep2()">Next: Select Dates & Options →</button>
+                </div>
+                
+                <div id="autoGenStep2" style="display: none;">
+                    <h4 style="margin-bottom: 16px; color: #0F766E;">Step 2: Required Questions</h4>
+                    
+                    <!-- QAPI Meeting -->
+                    <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="autoQAPI" onchange="toggleAutoQAPI()" style="width: 20px; height: 20px;">
+                            <span>Was there a QAPI meeting this month?</span>
+                        </label>
+                        <div id="autoQAPIDetails" style="display: none; margin-top: 12px; padding-left: 30px;">
+                            <div class="form-group">
+                                <label>QAPI Meeting Date</label>
+                                <input type="date" id="autoQAPIDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Hours</label>
+                                <input type="number" id="autoQAPIHours" min="0.5" step="0.5" placeholder="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Survey -->
+                    <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="autoSurvey" onchange="toggleAutoSurvey()" style="width: 20px; height: 20px;">
+                            <span>Was there a survey this month?</span>
+                        </label>
+                        <div id="autoSurveyDetails" style="display: none; margin-top: 12px; padding-left: 30px;">
+                            <div class="form-group">
+                                <label>Survey Date</label>
+                                <input type="date" id="autoSurveyDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Hours</label>
+                                <input type="number" id="autoSurveyHours" min="0.5" step="0.5" placeholder="2">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PIP -->
+                    <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="autoPIP" onchange="toggleAutoPIP()" style="width: 20px; height: 20px;">
+                            <span>Working on PIP (Performance Improvement Plan) this month?</span>
+                        </label>
+                        <div id="autoPIPDetails" style="display: none; margin-top: 12px; padding-left: 30px;">
+                            <div class="form-group">
+                                <label>PIP Description</label>
+                                <input type="text" id="autoPIPDescription" placeholder="e.g., Falls reduction initiative">
+                            </div>
+                            <div id="autoPIPDates">
+                                <!-- PIP date entries will be added here -->
+                            </div>
+                            <button type="button" class="button" onclick="addPIPDateEntry()" style="margin-top: 8px;">+ Add PIP Date</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Special Entries -->
+                    <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="autoSpecial" onchange="toggleAutoSpecial()" style="width: 20px; height: 20px;">
+                            <span>Any special projects or activities this month? (conferences, meetings, etc.)</span>
+                        </label>
+                        <div id="autoSpecialDetails" style="display: none; margin-top: 12px; padding-left: 30px;">
+                            <div id="autoSpecialEntries">
+                                <!-- Special entries will be added here -->
+                            </div>
+                            <button type="button" class="button" onclick="addSpecialEntry()" style="margin-top: 8px;">+ Add Special Entry</button>
+                        </div>
+                    </div>
+                    
+                    <button class="button secondary" onclick="goBackToAutoStep1()">← Back</button>
+                    <button class="button" onclick="goToAutoStep3()">Next: Select Work Dates →</button>
+                </div>
+                
+                <div id="autoGenStep3" style="display: none;">
+                    <h4 style="margin-bottom: 16px; color: #0F766E;">Step 3: Select Dates You Worked</h4>
+                    <p style="color: #6B7280; margin-bottom: 16px; font-size: 13px;">Click on dates when you performed medical director duties. Admin/DON meeting will be added for each week.</p>
+                    
+                    <div id="autoCalendar" style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <!-- Calendar will be generated here -->
+                    </div>
+                    
+                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        <strong>Selected Dates:</strong> <span id="autoSelectedDatesCount">0</span>
+                    </div>
+                    
+                    <button class="button secondary" onclick="goBackToAutoStep2()">← Back</button>
+                    <button class="button" onclick="goToAutoStep4()">Next: Review Hours →</button>
+                </div>
+                
+                <div id="autoGenStep4" style="display: none;">
+                    <h4 style="margin-bottom: 16px; color: #0F766E;">Step 4: Review & Generate</h4>
+                    
+                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        <strong>Hours So Far:</strong> <span id="autoCurrentHours">0</span> / <span id="autoTargetHours">0</span> hours
+                        <p style="font-size: 12px; color: #6B7280; margin-top: 8px;">Random tasks will be added to fill remaining hours</p>
+                    </div>
+                    
+                    <button class="button secondary" onclick="goBackToAutoStep3()">← Back</button>
+                    <button class="button" onclick="generateAutoReport()">🤖 Generate Report</button>
+                </div>
+                
+                <div id="autoGenStep5" style="display: none;">
+                    <h4 style="margin-bottom: 16px; color: #0F766E;">Step 5: Review Generated Report</h4>
+                    
+                    <div id="autoReportPreview" style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; max-height: 400px; overflow-y: auto;">
+                        <!-- Preview will be shown here -->
+                    </div>
+                    
+                    <div style="background: white; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        <strong>Total Hours:</strong> <span id="autoTotalHours">0</span> hours
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Electronic Signature</label>
+                        <select id="autoSignature" onchange="updateSignaturePreview()">
+                            <option value="">Select signature...</option>
+                            <option value="Dr. Jose E. Gonzalez MD CMD">Dr. Jose E. Gonzalez MD CMD</option>
+                            <option value="Dr. Eileen Caquias-Gonzalez MD CMD">Dr. Eileen Caquias-Gonzalez MD CMD</option>
+                        </select>
+                    </div>
+                    
+                    <div id="signaturePreview" style="display: none; background: #FFFBEB; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #FCD34D;">
+                        <div style="font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: 28px; color: #1E40AF; margin-bottom: 8px;" id="signatureText"></div>
+                        <div style="font-size: 12px; color: #6B7280;">
+                            Electronically signed on <span id="signatureTimestamp"></span>
+                        </div>
+                        <div style="font-size: 11px; color: #9CA3AF; margin-top: 4px; font-style: italic;">
+                            "I certify that the information provided above is accurate and complete to the best of my knowledge."
+                        </div>
+                    </div>
+                    
+                    <button class="button secondary" onclick="goBackToAutoStep4()">← Back to Edit</button>
+                    <button class="button" onclick="saveAutoReport()">💾 Save Report</button>
+                </div>
+            </div>
+            
             <div class="settings-grid">
                 <div class="settings-card">
                     <h3>👨‍⚕️ Providers</h3>
@@ -997,6 +1105,12 @@
                     <div class="form-group">
                         <label>Facility Name</label>
                         <input type="text" id="newFacilityName" placeholder="Facility name">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Provider</label>
+                        <select id="newFacilityProvider">
+                            <option value="">Select Provider</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Required Hours/Month</label>
@@ -1038,12 +1152,35 @@
             </div>
 
             <div style="margin-top: 30px;">
+                <button class="button" onclick="exportData()">📥 Export All Data</button>
+                <button class="button secondary" onclick="document.getElementById('importFile').click()">📤 Import Data</button>
+                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
                 <button class="button danger" onclick="resetAllData()">🗑️ Reset All Data</button>
             </div>
         </div>
     </div>
 
     <script>
+        // HTML sanitizer to prevent XSS when inserting user data into innerHTML
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // SHA-256 password hashing
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         // Task definitions with full descriptions
         const taskCategories = {
             1: [
@@ -1136,28 +1273,85 @@
                 { id: 2, name: 'Eileen Caquias Gonzalez MD', email: 'drecg@postacutenc.com' }
             ],
             facilities: [
-                { id: 1, name: 'Brookstone Living Center', hours: 10, email: '' },
-                { id: 2, name: 'Brunswick Cove', hours: 16, email: '' },
-                { id: 3, name: 'North Chase Nursing & Rehab', hours: 14, email: '' },
-                { id: 4, name: 'Bladen East', hours: 14, email: '' },
-                { id: 5, name: 'Harborview', hours: 16, email: '' },
-                { id: 6, name: 'Bolivia Rehabilitation & Health', hours: 12, email: '' },
-                { id: 7, name: 'Warsaw Rehabilitation & Health', hours: 10, email: '' },
-                { id: 8, name: 'Elizabethtown Healthcare & Rehab', hours: 12, email: '' }
+                { id: 1, name: 'Brookstone Living Center', hours: 10, email: '', providerId: 1 },
+                { id: 2, name: 'Brunswick Cove', hours: 16, email: '', providerId: 1 },
+                { id: 3, name: 'North Chase Nursing & Rehab', hours: 14, email: '', providerId: 1 },
+                { id: 4, name: 'Bladen East', hours: 14, email: '', providerId: 1 },
+                { id: 5, name: 'Harborview', hours: 16, email: '', providerId: 2 },
+                { id: 6, name: 'Bolivia Rehabilitation & Health', hours: 12, email: '', providerId: 2 },
+                { id: 7, name: 'Warsaw Rehabilitation & Health', hours: 10, email: '', providerId: 2 },
+                { id: 8, name: 'Elizabethtown Healthcare & Rehab', hours: 12, email: '', providerId: 2 }
             ],
             reports: [],
             officeManagerEmail: 'admin@postacutenc.com',
             selectedTasks: [],
-            adminPassword: 'PostAcute2026' // Default password - change in Settings
+            adminPasswordHash: '', // SHA-256 hash of admin password (auto-migrated on first load)
+            _defaultPassword: 'PostAcute2026', // Only used for initial hash migration
+            taskHistory: {} // Track tasks used per facility: { facilityId: { 'YYYY-MM': ['task1', 'task2'] } }
+        };
+
+        // Randomizable tasks pool (12 tasks total)
+        const randomizableTasks = [
+            { category: 2, name: 'Pressure injury review', description: 'Reviewed new or worsening pressure injuries to evaluate medical management, prevention strategies, and interdisciplinary care coordination.' },
+            { category: 2, name: 'Weight loss / nutrition review', description: 'Reviewed unplanned weight loss and nutrition-related quality indicators to assess medical contributors and appropriateness of interventions.' },
+            { category: 2, name: 'Avoidable transfer / readmission review', description: 'Reviewed hospital transfers and readmissions to identify potentially avoidable events and opportunities to improve on-site management.' },
+            { category: 2, name: 'Infection rate trend review', description: 'Reviewed facility infection rates and trends to identify patterns and improvement opportunities.' },
+            { category: 2, name: 'Rehospitalization rate analysis', description: 'Analyzed rehospitalization rates to identify contributing factors and reduction strategies.' },
+            { category: 3, name: 'Antibiotic utilization review', description: 'Reviewed antibiotic prescribing patterns and stewardship compliance to ensure appropriate use and reduce resistance risk.' },
+            { category: 3, name: 'UTI stewardship review', description: 'Reviewed UTI diagnostic and treatment practices for adherence to current guidelines and reduction of inappropriate catheter use.' },
+            { category: 3, name: 'Respiratory illness surveillance', description: 'Reviewed respiratory illness trends and outbreak preparedness, including influenza, COVID-19, and RSV protocols.' },
+            { category: 3, name: 'Wound infection surveillance', description: 'Reviewed wound infection cases to assess treatment protocols and prevention strategies.' },
+            { category: 4, name: 'Opioid stewardship review', description: 'Reviewed opioid prescribing patterns, risk mitigation strategies, and compliance with controlled substance policies.' },
+            { category: 4, name: 'Controlled substance audit', description: 'Reviewed controlled substance documentation and disposal procedures for compliance.' },
+            { category: 4, name: 'Medication error review', description: 'Reviewed medication errors to identify root causes and prevention strategies.' },
+            { category: 5, name: 'Psychotropic medication census review', description: 'Reviewed census of residents receiving psychotropic medications to ensure appropriate indications, dosing, and documentation.' },
+            { category: 5, name: 'Gradual dose reduction (GDR) oversight', description: 'Oversaw GDR attempts for psychotropic medications, reviewing clinical rationale and documentation.' }
+        ];
+
+        // Fixed tasks (always or conditionally used)
+        const fixedTasks = {
+            adminMeeting: { category: 1, name: 'Admin/DON leadership meeting', description: 'Participated in scheduled leadership meeting with Administrator and Director of Nursing to review facility-wide clinical operations, medical care coordination, provider performance, and priority action items.' },
+            pharmacyReview: { category: 4, name: 'Monthly pharmacy recommendation review', description: 'Reviewed monthly pharmacist consultant recommendations and medication regimen reviews to address identified issues and optimize medication safety.' },
+            qapiMeeting: { category: 2, name: 'QAPI meeting participation', description: 'Participated in the facility QAPI meeting, providing physician oversight and clinical interpretation of quality metrics and performance trends.' },
+            surveyParticipation: { category: 8, name: 'Participated and assisted facility with survey', description: 'Participated in and assisted facility during state survey, providing medical director leadership and clinical guidance during the survey process.' },
+            pipDevelopment: { category: 2, name: 'Performance improvement plan (PIP) development', description: 'Assisted in development of performance improvement initiatives targeting identified quality or safety concerns.' },
+            pipFollowup: { category: 2, name: 'Follow-up on prior PIP', description: 'Reviewed progress on prior performance improvement initiatives and provided ongoing physician leadership support.' },
+            specialProject: { category: 9, name: 'Special project', description: '' } // Description filled by user
+        };
+
+        // Auto-generator state
+        let autoGenState = {
+            selectedDates: [],
+            specialEntries: [],
+            pipEntries: [],
+            generatedTasks: []
         };
 
         // Load data from localStorage
-        function loadData() {
+        async function loadData() {
             const saved = localStorage.getItem('medicalDirectorshipData');
             if (saved) {
                 const loaded = JSON.parse(saved);
                 appData = { ...appData, ...loaded };
             }
+
+            // Migrate facilities without providerId (assign to provider 1 by default)
+            appData.facilities.forEach(f => {
+                if (!f.providerId) f.providerId = 1;
+            });
+
+            // Migrate plain-text password to hash
+            if (appData.adminPassword) {
+                // Old format: plain text password exists, migrate it
+                appData.adminPasswordHash = await hashPassword(appData.adminPassword);
+                delete appData.adminPassword;
+                saveData();
+            } else if (!appData.adminPasswordHash) {
+                // First load ever: hash the default password
+                appData.adminPasswordHash = await hashPassword(appData._defaultPassword);
+                saveData();
+            }
+
             updateAllLists();
             populateTaskDropdowns();
         }
@@ -1168,8 +1362,8 @@
         }
 
         // Initialize
-        function init() {
-            loadData();
+        async function init() {
+            await loadData();
             populateMonthDropdown();
         }
 
@@ -1204,7 +1398,7 @@
                 const select = document.getElementById(`category${cat}`);
                 select.innerHTML = '<option value="">Select a task...</option>';
                 taskCategories[cat].forEach((task, index) => {
-                    select.innerHTML += `<option value="${index}">${task.name}</option>`;
+                    select.innerHTML += `<option value="${index}">${escapeHTML(task.name)}</option>`;
                 });
             }
         }
@@ -1212,9 +1406,11 @@
         // Open Settings with password
         async function openSettings() {
             const password = await showPasswordModal('Admin Access Required', 'Enter admin password to access settings');
-            
-            if (!password || password !== appData.adminPassword) {
-                if (password) showAlert('Incorrect password. Access denied.', 'error');
+
+            if (!password) return;
+            const inputHash = await hashPassword(password);
+            if (inputHash !== appData.adminPasswordHash) {
+                showAlert('Incorrect password. Access denied.', 'error');
                 return;
             }
 
@@ -1223,6 +1419,7 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById('settings-tab').classList.add('active');
             updateSettingsLists();
+            initAutoGenerator(); // Initialize auto-generator dropdowns
         }
 
         // Tab switching
@@ -1230,8 +1427,10 @@
             // Password protect settings tab (no longer needed since tab is hidden)
             if (tab === 'settings') {
                 const password = await showPasswordModal('Settings Access', 'Enter admin password to access settings');
-                
-                if (!password || password !== appData.adminPassword) {
+
+                if (!password) return;
+                const inputHash = await hashPassword(password);
+                if (inputHash !== appData.adminPasswordHash) {
                     showAlert('Incorrect password. Access denied.', 'error');
                     return;
                 }
@@ -1255,16 +1454,19 @@
             const providerSelect = document.getElementById('providerSelect');
             providerSelect.innerHTML = '<option value="">Select Provider</option>';
             appData.providers.forEach(p => {
-                providerSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+                providerSelect.innerHTML += `<option value="${p.id}">${escapeHTML(p.name)}</option>`;
             });
         }
 
         function updateFacilityList() {
             const facilitySelect = document.getElementById('facilitySelect');
+            const selectedProviderId = parseInt(document.getElementById('providerSelect').value);
             facilitySelect.innerHTML = '<option value="">Select Facility</option>';
-            appData.facilities.forEach(f => {
-                facilitySelect.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-            });
+            appData.facilities
+                .filter(f => !selectedProviderId || f.providerId === selectedProviderId)
+                .forEach(f => {
+                    facilitySelect.innerHTML += `<option value="${f.id}">${escapeHTML(f.name)}</option>`;
+                });
         }
 
         function updateTasksAndHours() {
@@ -1308,15 +1510,15 @@
             const container = document.getElementById(`category${category}-tasks`);
             const taskHTML = `
                 <div class="selected-task active" id="${taskId}">
-                    <strong>${task.name}</strong>
-                    <div class="description">"${task.description}"</div>
+                    <strong>${escapeHTML(task.name)}</strong>
+                    <div class="description">"${escapeHTML(task.description)}"</div>
                     <div class="hours-input">
                         <label>Date:</label>
-                        <input type="date" id="${taskId}-date" 
+                        <input type="date" id="${taskId}-date"
                                onchange="updateTaskDate('${taskId}', this.value)"
                                required>
                         <label style="margin-left: 15px;">Hours:</label>
-                        <input type="number" min="0" step="0.5" placeholder="0" 
+                        <input type="number" min="0" step="0.5" placeholder="0"
                                onchange="updateTaskHours('${taskId}', this.value)">
                         <button class="remove-task-btn" onclick="removeTask('${taskId}', ${category})">Remove</button>
                     </div>
@@ -1420,7 +1622,7 @@
         // Show alert
         function showAlert(message, type = 'success') {
             const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert ${type}">${message}</div>`;
+            container.innerHTML = `<div class="alert ${type}">${escapeHTML(message)}</div>`;
             setTimeout(() => container.innerHTML = '', 5000);
         }
 
@@ -1495,8 +1697,8 @@
         }
 
         function generateReportHTML(report) {
-            const date = new Date(report.month);
-            const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const [rYear, rMonth] = report.month.split('-');
+            const monthName = new Date(rYear, rMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
             
             let tasksHTML = '';
             report.tasks.forEach(task => {
@@ -1505,8 +1707,8 @@
                     <tr>
                         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; width: 100px;">${taskDate}</td>
                         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
-                            <strong>${task.name}</strong><br>
-                            <em style="color: #4a5568; font-size: 12px;">"${task.description}"</em>
+                            <strong>${escapeHTML(task.name)}</strong><br>
+                            <em style="color: #4a5568; font-size: 12px;">"${escapeHTML(task.description)}"</em>
                         </td>
                         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; vertical-align: top; width: 80px;">${task.hours}</td>
                     </tr>
@@ -1544,11 +1746,11 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <div class="info-label">PROVIDER</div>
-                            <div class="info-value">${report.providerName}</div>
+                            <div class="info-value">${escapeHTML(report.providerName)}</div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">FACILITY</div>
-                            <div class="info-value">${report.facilityName}</div>
+                            <div class="info-value">${escapeHTML(report.facilityName)}</div>
                         </div>
                     </div>
 
@@ -1573,7 +1775,7 @@
 
                     <div class="signature-box">
                         <p><strong>Electronic Signature</strong></p>
-                        <div class="signature">${report.signature}</div>
+                        <div class="signature">${escapeHTML(report.signature)}</div>
                         <p style="font-size: 12px; color: #718096;">
                             Signed on: ${new Date(report.signedDate).toLocaleString()}<br>
                             I certify that the information provided above is accurate and complete.
@@ -1654,8 +1856,8 @@
                 tasksList += `[${taskDate}] ${task.name} (${task.hours} hours)\n"${task.description}"\n\n`;
             });
 
-            const date = new Date(month);
-            const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const [eYear, eMonth] = month.split('-');
+            const monthName = new Date(eYear, eMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
             const emailBody = `
 PostAcuteNC, PC
@@ -1686,7 +1888,6 @@ This is an automatically generated report.
                 if (cleanEmail === '') return false;
                 // Filter out placeholder emails
                 if (cleanEmail.includes('example.com')) return false;
-                if (cleanEmail.startsWith('admin@') && !cleanEmail.includes('postacutenc')) return false;
                 return true;
             }).join(',');
 
@@ -1697,7 +1898,7 @@ This is an automatically generated report.
 
             const subject = `${provider.name} - ${facility.name} - Medical Director Report - ${monthName}`;
             const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
-            
+
             window.location.href = mailtoLink;
             showAlert('Email client opened! Please review and send the email.', 'success');
         }
@@ -1725,17 +1926,17 @@ This is an automatically generated report.
             );
 
             historyList.innerHTML = sortedReports.map(report => {
-                const date = new Date(report.month);
-                const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                const [rYear, rMonth] = report.month.split('-');
+                const monthName = new Date(rYear, rMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                 const signedDate = new Date(report.signedDate).toLocaleDateString();
 
                 return `
                     <div class="report-card">
                         <div class="report-header">
                             <div>
-                                <h3>${report.providerName} - ${report.facilityName}</h3>
+                                <h3>${escapeHTML(report.providerName)} - ${escapeHTML(report.facilityName)}</h3>
                                 <div class="report-meta">
-                                    ${monthName} • ${report.totalHours.toFixed(1)}/${report.requiredHours} hours • 
+                                    ${monthName} • ${report.totalHours.toFixed(1)}/${report.requiredHours} hours •
                                     Signed: ${signedDate}
                                 </div>
                             </div>
@@ -1747,7 +1948,7 @@ This is an automatically generated report.
                         </div>
                         <div class="report-details">
                             <strong>Tasks (${report.tasks.length}):</strong><br>
-                            ${report.tasks.map(t => `${t.name} (${t.hours}h)`).join(', ')}
+                            ${report.tasks.map(t => `${escapeHTML(t.name)} (${t.hours}h)`).join(', ')}
                         </div>
                     </div>
                 `;
@@ -1757,10 +1958,77 @@ This is an automatically generated report.
         function viewReport(reportId) {
             const report = appData.reports.find(r => r.id === reportId);
             if (report) {
-                const reportWindow = window.open('', '_blank');
-                reportWindow.document.write(generateReportHTML(report));
-                reportWindow.document.close();
+                try {
+                    const reportWindow = window.open('', '_blank');
+                    if (reportWindow) {
+                        reportWindow.document.write(generateReportHTML(report));
+                        reportWindow.document.close();
+                    } else {
+                        // Fallback for preview mode or blocked popups
+                        showReportInModal(report);
+                    }
+                } catch (e) {
+                    // Fallback for preview mode
+                    showReportInModal(report);
+                }
             }
+        }
+
+        function showReportInModal(report) {
+            const [rYear, rMonth] = report.month.split('-');
+            const monthName = new Date(rYear, rMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            let tasksHTML = '';
+            report.tasks.forEach(task => {
+                const taskDate = task.date ? new Date(task.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
+                tasksHTML += `
+                    <div style="padding: 12px; border-bottom: 1px solid #E5E7EB;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <strong>${escapeHTML(task.name)}</strong>
+                            <span style="color: #0F766E; font-weight: 600;">${task.hours} hrs</span>
+                        </div>
+                        <div style="font-size: 12px; color: #6B7280;">${taskDate}</div>
+                        <div style="font-size: 13px; color: #4B5563; font-style: italic; margin-top: 4px;">"${escapeHTML(task.description)}"</div>
+                    </div>
+                `;
+            });
+
+            const modalHTML = `
+                <div style="text-align: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #E5E7EB;">
+                    <h3 style="color: #0F766E; margin-bottom: 4px;">PostAcuteNC, PC</h3>
+                    <strong>Medical Directorship Billing Report</strong><br>
+                    <span style="color: #6B7280;">${monthName}</span>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <strong>Provider:</strong> ${escapeHTML(report.providerName)}<br>
+                    <strong>Facility:</strong> ${escapeHTML(report.facilityName)}
+                </div>
+                <h4 style="margin-bottom: 8px;">Tasks Completed</h4>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px;">
+                    ${tasksHTML}
+                </div>
+                <div style="margin-top: 16px; padding: 12px; background: #F0FDFA; border-radius: 8px;">
+                    <strong>Total Hours:</strong> ${report.totalHours.toFixed(1)} hours
+                </div>
+                <div style="margin-top: 16px; padding: 16px; background: #FFFBEB; border-radius: 8px; border: 1px solid #FCD34D;">
+                    <div style="font-family: 'Brush Script MT', 'Segoe Script', cursive; font-size: 24px; color: #1E40AF;">${escapeHTML(report.signature)}</div>
+                    <div style="font-size: 12px; color: #6B7280; margin-top: 8px;">
+                        Electronically signed on ${new Date(report.signedDate).toLocaleString()}
+                    </div>
+                </div>
+            `;
+
+            // Create modal
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;';
+            overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'background: white; border-radius: 12px; padding: 24px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;';
+            modal.innerHTML = modalHTML + '<button class="button" style="width: 100%; margin-top: 16px;" onclick="this.closest(\'div[style*=\\\"position: fixed\\\"]\').remove()">Close</button>';
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
         }
 
         function emailReportAgain(reportId) {
@@ -1778,8 +2046,8 @@ This is an automatically generated report.
                 tasksList += `[${taskDate}] ${task.name} (${task.hours} hours)\n"${task.description}"\n\n`;
             });
 
-            const date = new Date(report.month);
-            const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            const [rYear2, rMonth2] = report.month.split('-');
+            const monthName = new Date(rYear2, rMonth2 - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
             const emailBody = `
 PostAcuteNC, PC
@@ -1810,7 +2078,6 @@ This is an automatically generated report.
                 if (cleanEmail === '') return false;
                 // Filter out placeholder emails
                 if (cleanEmail.includes('example.com')) return false;
-                if (cleanEmail.startsWith('admin@') && !cleanEmail.includes('postacutenc')) return false;
                 return true;
             }).join(',');
 
@@ -1821,7 +2088,7 @@ This is an automatically generated report.
 
             const subject = `${report.providerName} - ${report.facilityName} - Medical Director Report - ${monthName}`;
             const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
-            
+
             window.location.href = mailtoLink;
             showAlert('Email client opened! Please review and send the email.', 'success');
         }
@@ -1829,9 +2096,11 @@ This is an automatically generated report.
         async function deleteReport(reportId) {
             // Require admin password to delete reports
             const password = await showPasswordModal('Delete Report', 'Enter admin password to delete this report');
-            
-            if (!password || password !== appData.adminPassword) {
-                if (password) showAlert('Incorrect password. Cannot delete report.', 'error');
+
+            if (!password) return;
+            const inputHash = await hashPassword(password);
+            if (inputHash !== appData.adminPasswordHash) {
+                showAlert('Incorrect password. Cannot delete report.', 'error');
                 return;
             }
 
@@ -1852,26 +2121,35 @@ This is an automatically generated report.
                 providersList.innerHTML += `
                     <div class="facility-item">
                         <div>
-                            <strong>${p.name}</strong><br>
-                            <small style="color: #718096;">${p.email}</small>
+                            <strong>${escapeHTML(p.name)}</strong><br>
+                            <small style="color: #718096;">${escapeHTML(p.email)}</small>
                         </div>
-                        <button class="button danger" style="padding: 8px 15px; font-size: 12px;" 
+                        <button class="button danger" style="padding: 8px 15px; font-size: 12px;"
                                 onclick="deleteProvider(${p.id})">Delete</button>
                     </div>
                 `;
+            });
+
+            // Populate provider dropdown in facility form
+            const facilityProviderSelect = document.getElementById('newFacilityProvider');
+            facilityProviderSelect.innerHTML = '<option value="">Select Provider</option>';
+            appData.providers.forEach(p => {
+                facilityProviderSelect.innerHTML += `<option value="${p.id}">${escapeHTML(p.name)}</option>`;
             });
 
             // Facilities
             const facilitiesList = document.getElementById('facilitiesList');
             facilitiesList.innerHTML = '<h4 style="margin: 20px 0 10px 0; color: #2d3748;">Current Facilities</h4>';
             appData.facilities.forEach(f => {
+                const assignedProvider = appData.providers.find(p => p.id === f.providerId);
+                const providerLabel = assignedProvider ? escapeHTML(assignedProvider.name) : '<em>Unassigned</em>';
                 facilitiesList.innerHTML += `
                     <div class="facility-item">
                         <div>
-                            <strong>${f.name}</strong><br>
-                            <small style="color: #718096;">${f.hours} hours/month • ${f.email}</small>
+                            <strong>${escapeHTML(f.name)}</strong><br>
+                            <small style="color: #718096;">${f.hours} hrs/mo • ${providerLabel} • ${escapeHTML(f.email)}</small>
                         </div>
-                        <button class="button danger" style="padding: 8px 15px; font-size: 12px;" 
+                        <button class="button danger" style="padding: 8px 15px; font-size: 12px;"
                                 onclick="deleteFacility(${f.id})">Delete</button>
                     </div>
                 `;
@@ -1913,20 +2191,22 @@ This is an automatically generated report.
 
         function addFacility() {
             const name = document.getElementById('newFacilityName').value.trim();
+            const providerId = parseInt(document.getElementById('newFacilityProvider').value);
             const hours = parseInt(document.getElementById('newFacilityHours').value);
             const email = document.getElementById('newFacilityEmail').value.trim();
 
-            if (!name || !hours || !email) {
-                showAlert('Please fill in all fields', 'error');
+            if (!name || !providerId || !hours || !email) {
+                showAlert('Please fill in all fields including assigned provider', 'error');
                 return;
             }
 
             const newId = Math.max(...appData.facilities.map(f => f.id), 0) + 1;
-            appData.facilities.push({ id: newId, name, hours, email });
+            appData.facilities.push({ id: newId, name, hours, email, providerId });
             saveData();
             updateSettingsLists();
 
             document.getElementById('newFacilityName').value = '';
+            document.getElementById('newFacilityProvider').value = '';
             document.getElementById('newFacilityHours').value = '';
             document.getElementById('newFacilityEmail').value = '';
             showAlert('Facility added successfully!', 'success');
@@ -1952,7 +2232,7 @@ This is an automatically generated report.
             showAlert('Office manager email saved!', 'success');
         }
 
-        function changeAdminPassword() {
+        async function changeAdminPassword() {
             const newPassword = document.getElementById('newAdminPassword').value;
             const confirmPassword = document.getElementById('confirmAdminPassword').value;
 
@@ -1971,13 +2251,61 @@ This is an automatically generated report.
                 return;
             }
 
-            appData.adminPassword = newPassword;
+            appData.adminPasswordHash = await hashPassword(newPassword);
             saveData();
             
             document.getElementById('newAdminPassword').value = '';
             document.getElementById('confirmAdminPassword').value = '';
             
             showAlert('Admin password changed successfully!', 'success');
+        }
+
+        // Export all data as JSON file
+        function exportData() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `postacutenc-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showAlert('Data exported successfully!', 'success');
+        }
+
+        // Import data from JSON file
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+
+                    // Basic validation
+                    if (!imported.providers || !imported.facilities) {
+                        showAlert('Invalid backup file. Missing required data.', 'error');
+                        return;
+                    }
+
+                    if (confirm('This will replace ALL current data with the imported data. Are you sure?')) {
+                        appData = { ...appData, ...imported };
+                        saveData();
+                        updateAllLists();
+                        updateSettingsLists();
+                        initAutoGenerator();
+                        showAlert('Data imported successfully! ' + appData.reports.length + ' reports loaded.', 'success');
+                    }
+                } catch (err) {
+                    showAlert('Error reading file. Please make sure it is a valid JSON backup.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            // Reset file input so same file can be imported again
+            event.target.value = '';
         }
 
         function resetAllData() {
@@ -2037,6 +2365,755 @@ This is an automatically generated report.
                 button.textContent = 'Show';
             }
         }
+
+        // =====================================
+        // AUTO-GENERATOR FUNCTIONS
+        // =====================================
+
+        // Update auto-generator facility list based on selected provider
+        function updateAutoFacilityList() {
+            const selectedProviderId = parseInt(document.getElementById('autoProvider').value);
+            const facilitySelect = document.getElementById('autoFacility');
+            facilitySelect.innerHTML = '<option value="">Select Facility</option>';
+            appData.facilities
+                .filter(f => !selectedProviderId || f.providerId === selectedProviderId)
+                .forEach(f => {
+                    facilitySelect.innerHTML += `<option value="${f.id}">${escapeHTML(f.name)} (${f.hours} hrs)</option>`;
+                });
+            document.getElementById('autoFacilityInfo').style.display = 'none';
+        }
+
+        // Initialize auto-generator dropdowns
+        function initAutoGenerator() {
+            const providerSelect = document.getElementById('autoProvider');
+            const facilitySelect = document.getElementById('autoFacility');
+            const monthSelect = document.getElementById('autoMonth');
+
+            // Populate providers
+            providerSelect.innerHTML = '<option value="">Select Provider</option>';
+            appData.providers.forEach(p => {
+                providerSelect.innerHTML += `<option value="${p.id}">${escapeHTML(p.name)}</option>`;
+            });
+
+            // Facilities start empty until provider is selected
+            facilitySelect.innerHTML = '<option value="">Select Facility</option>';
+
+            // Populate months (current + 3 back)
+            monthSelect.innerHTML = '<option value="">Select Month</option>';
+            const today = new Date();
+            for (let i = 0; i < 4; i++) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                monthSelect.innerHTML += `<option value="${value}">${label}</option>`;
+            }
+
+            // Reset state
+            autoGenState = {
+                selectedDates: [],
+                specialEntries: [],
+                pipEntries: [],
+                generatedTasks: []
+            };
+        }
+
+        // Update facility hours display
+        function updateAutoFacilityHours() {
+            const facilityId = document.getElementById('autoFacility').value;
+            const infoDiv = document.getElementById('autoFacilityInfo');
+            
+            if (facilityId) {
+                const facility = appData.facilities.find(f => f.id == facilityId);
+                document.getElementById('autoRequiredHours').textContent = facility.hours;
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+
+        // Step navigation
+        function scrollToAutoGenerator() {
+            document.querySelector('.settings-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function goToAutoStep2() {
+            const provider = document.getElementById('autoProvider').value;
+            const facility = document.getElementById('autoFacility').value;
+            const month = document.getElementById('autoMonth').value;
+
+            if (!provider || !facility || !month) {
+                showAlert('Please select Provider, Facility, and Month', 'error');
+                return;
+            }
+
+            // Set date constraints for QAPI, Survey
+            const [year, monthNum] = month.split('-');
+            const firstDay = `${year}-${monthNum}-01`;
+            const lastDay = new Date(year, monthNum, 0).getDate();
+            const lastDate = `${year}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
+
+            document.getElementById('autoQAPIDate').min = firstDay;
+            document.getElementById('autoQAPIDate').max = lastDate;
+            document.getElementById('autoSurveyDate').min = firstDay;
+            document.getElementById('autoSurveyDate').max = lastDate;
+            // PIP dates are set dynamically when entries are added
+
+            document.getElementById('autoGenStep1').style.display = 'none';
+            document.getElementById('autoGenStep2').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        function goBackToAutoStep1() {
+            document.getElementById('autoGenStep2').style.display = 'none';
+            document.getElementById('autoGenStep1').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        function goToAutoStep3() {
+            const month = document.getElementById('autoMonth').value;
+            generateAutoCalendar(month);
+            
+            document.getElementById('autoGenStep2').style.display = 'none';
+            document.getElementById('autoGenStep3').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        function goBackToAutoStep2() {
+            document.getElementById('autoGenStep3').style.display = 'none';
+            document.getElementById('autoGenStep2').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        function goToAutoStep4() {
+            if (autoGenState.selectedDates.length === 0) {
+                showAlert('Please select at least one date', 'error');
+                return;
+            }
+
+            updateAutoHoursDisplay();
+            document.getElementById('autoGenStep3').style.display = 'none';
+            document.getElementById('autoGenStep4').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        function goBackToAutoStep3() {
+            document.getElementById('autoGenStep4').style.display = 'none';
+            document.getElementById('autoGenStep3').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        function goBackToAutoStep4() {
+            document.getElementById('autoGenStep5').style.display = 'none';
+            document.getElementById('autoGenStep4').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        // Toggle QAPI details
+        function toggleAutoQAPI() {
+            const checked = document.getElementById('autoQAPI').checked;
+            document.getElementById('autoQAPIDetails').style.display = checked ? 'block' : 'none';
+        }
+
+        // Toggle Survey details
+        function toggleAutoSurvey() {
+            const checked = document.getElementById('autoSurvey').checked;
+            document.getElementById('autoSurveyDetails').style.display = checked ? 'block' : 'none';
+        }
+
+        // Toggle PIP details
+        function toggleAutoPIP() {
+            const checked = document.getElementById('autoPIP').checked;
+            document.getElementById('autoPIPDetails').style.display = checked ? 'block' : 'none';
+            if (checked && autoGenState.pipEntries.length === 0) {
+                addPIPDateEntry(); // Add first entry automatically
+            }
+        }
+
+        // Add PIP date entry
+        function addPIPDateEntry() {
+            const month = document.getElementById('autoMonth').value;
+            const [year, monthNum] = month.split('-');
+            const firstDay = `${year}-${monthNum}-01`;
+            const lastDay = new Date(year, monthNum, 0).getDate();
+            const lastDate = `${year}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
+
+            const entryId = Date.now();
+            autoGenState.pipEntries.push({ id: entryId, date: '', hours: 0 });
+
+            const container = document.getElementById('autoPIPDates');
+            const entryDiv = document.createElement('div');
+            entryDiv.id = `pip-${entryId}`;
+            entryDiv.style.cssText = 'display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;';
+            entryDiv.innerHTML = `
+                <div style="flex: 1; min-width: 140px;">
+                    <label style="font-size: 12px; color: #6B7280;">Date</label>
+                    <input type="date" id="pip-date-${entryId}" min="${firstDay}" max="${lastDate}" onchange="updatePIPEntry(${entryId})" style="width: 100%;">
+                </div>
+                <div style="width: 80px;">
+                    <label style="font-size: 12px; color: #6B7280;">Hours</label>
+                    <input type="number" id="pip-hours-${entryId}" min="0.5" step="0.5" placeholder="1" onchange="updatePIPEntry(${entryId})" style="width: 100%;">
+                </div>
+                <button type="button" class="button danger" onclick="removePIPEntry(${entryId})" style="margin-top: 18px; padding: 8px 12px;">✕</button>
+            `;
+            container.appendChild(entryDiv);
+        }
+
+        function updatePIPEntry(entryId) {
+            const entry = autoGenState.pipEntries.find(e => e.id === entryId);
+            if (entry) {
+                entry.date = document.getElementById(`pip-date-${entryId}`).value;
+                entry.hours = parseFloat(document.getElementById(`pip-hours-${entryId}`).value) || 0;
+            }
+            updateAutoHoursDisplay();
+        }
+
+        function removePIPEntry(entryId) {
+            autoGenState.pipEntries = autoGenState.pipEntries.filter(e => e.id !== entryId);
+            document.getElementById(`pip-${entryId}`).remove();
+            updateAutoHoursDisplay();
+        }
+
+        // Toggle Special Entries
+        function toggleAutoSpecial() {
+            const checked = document.getElementById('autoSpecial').checked;
+            document.getElementById('autoSpecialDetails').style.display = checked ? 'block' : 'none';
+            if (checked && autoGenState.specialEntries.length === 0) {
+                addSpecialEntry(); // Add first entry automatically
+            }
+        }
+
+        // Add Special Entry
+        function addSpecialEntry() {
+            const month = document.getElementById('autoMonth').value;
+            const [year, monthNum] = month.split('-');
+            const firstDay = `${year}-${monthNum}-01`;
+            const lastDay = new Date(year, monthNum, 0).getDate();
+            const lastDate = `${year}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
+
+            const entryId = Date.now();
+            autoGenState.specialEntries.push({ id: entryId, date: '', description: '', hours: 0 });
+
+            const container = document.getElementById('autoSpecialEntries');
+            const entryDiv = document.createElement('div');
+            entryDiv.id = `special-${entryId}`;
+            entryDiv.style.cssText = 'background: #F9FAFB; padding: 12px; border-radius: 8px; margin-bottom: 10px;';
+            entryDiv.innerHTML = `
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label style="font-size: 12px; color: #6B7280;">Description</label>
+                    <input type="text" id="special-desc-${entryId}" placeholder="e.g., Medical conference attendance" onchange="updateSpecialEntry(${entryId})" style="width: 100%;">
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 140px;">
+                        <label style="font-size: 12px; color: #6B7280;">Date</label>
+                        <input type="date" id="special-date-${entryId}" min="${firstDay}" max="${lastDate}" onchange="updateSpecialEntry(${entryId})" style="width: 100%;">
+                    </div>
+                    <div style="width: 80px;">
+                        <label style="font-size: 12px; color: #6B7280;">Hours</label>
+                        <input type="number" id="special-hours-${entryId}" min="0.5" step="0.5" placeholder="2" onchange="updateSpecialEntry(${entryId})" style="width: 100%;">
+                    </div>
+                    <button type="button" class="button danger" onclick="removeSpecialEntry(${entryId})" style="margin-top: 18px; padding: 8px 12px;">✕</button>
+                </div>
+            `;
+            container.appendChild(entryDiv);
+        }
+
+        function updateSpecialEntry(entryId) {
+            const entry = autoGenState.specialEntries.find(e => e.id === entryId);
+            if (entry) {
+                entry.date = document.getElementById(`special-date-${entryId}`).value;
+                entry.description = document.getElementById(`special-desc-${entryId}`).value;
+                entry.hours = parseFloat(document.getElementById(`special-hours-${entryId}`).value) || 0;
+            }
+            updateAutoHoursDisplay();
+        }
+
+        function removeSpecialEntry(entryId) {
+            autoGenState.specialEntries = autoGenState.specialEntries.filter(e => e.id !== entryId);
+            document.getElementById(`special-${entryId}`).remove();
+            updateAutoHoursDisplay();
+        }
+
+        // Generate calendar for date selection
+        function generateAutoCalendar(month) {
+            const [year, monthNum] = month.split('-');
+            const firstDay = new Date(year, monthNum - 1, 1);
+            const lastDay = new Date(year, monthNum, 0).getDate();
+            const startDay = firstDay.getDay(); // 0 = Sunday
+
+            const monthName = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            let html = `<h4 style="text-align: center; margin-bottom: 12px;">${monthName}</h4>`;
+            html += '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;">';
+            
+            // Day headers
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                html += `<div style="font-weight: bold; font-size: 12px; padding: 8px 0; color: #6B7280;">${day}</div>`;
+            });
+
+            // Empty cells before first day
+            for (let i = 0; i < startDay; i++) {
+                html += '<div></div>';
+            }
+
+            // Days
+            for (let day = 1; day <= lastDay; day++) {
+                const dateStr = `${year}-${monthNum}-${String(day).padStart(2, '0')}`;
+                const isSelected = autoGenState.selectedDates.includes(dateStr);
+                const bgColor = isSelected ? '#14B8A6' : '#F3F4F6';
+                const textColor = isSelected ? 'white' : '#374151';
+                
+                html += `<div onclick="toggleAutoDate('${dateStr}')" 
+                         style="padding: 10px; cursor: pointer; border-radius: 8px; background: ${bgColor}; color: ${textColor}; font-weight: 500; transition: all 0.2s;"
+                         id="cal-${dateStr}">${day}</div>`;
+            }
+
+            html += '</div>';
+            document.getElementById('autoCalendar').innerHTML = html;
+            updateSelectedDatesCount();
+        }
+
+        // Toggle date selection
+        function toggleAutoDate(dateStr) {
+            const index = autoGenState.selectedDates.indexOf(dateStr);
+            if (index > -1) {
+                autoGenState.selectedDates.splice(index, 1);
+            } else {
+                autoGenState.selectedDates.push(dateStr);
+            }
+            
+            // Update visual
+            const cell = document.getElementById(`cal-${dateStr}`);
+            if (autoGenState.selectedDates.includes(dateStr)) {
+                cell.style.background = '#14B8A6';
+                cell.style.color = 'white';
+            } else {
+                cell.style.background = '#F3F4F6';
+                cell.style.color = '#374151';
+            }
+            
+            updateSelectedDatesCount();
+        }
+
+        function updateSelectedDatesCount() {
+            document.getElementById('autoSelectedDatesCount').textContent = autoGenState.selectedDates.length;
+        }
+
+        // Update hours display
+        function updateAutoHoursDisplay() {
+            const facilityId = document.getElementById('autoFacility').value;
+            const facility = appData.facilities.find(f => f.id == facilityId);
+            const targetHours = facility ? facility.hours : 0;
+
+            let currentHours = 0;
+
+            // QAPI hours
+            if (document.getElementById('autoQAPI').checked) {
+                currentHours += parseFloat(document.getElementById('autoQAPIHours').value) || 0;
+            }
+
+            // Survey hours
+            if (document.getElementById('autoSurvey').checked) {
+                currentHours += parseFloat(document.getElementById('autoSurveyHours').value) || 0;
+            }
+
+            // PIP hours (sum of all PIP entries)
+            if (document.getElementById('autoPIP').checked) {
+                autoGenState.pipEntries.forEach(entry => {
+                    currentHours += entry.hours;
+                });
+            }
+
+            // Special entries
+            autoGenState.specialEntries.forEach(entry => {
+                currentHours += entry.hours;
+            });
+
+            // Admin meetings (1 per week selected) - estimate 1 hour each
+            const weeks = getWeeksFromDates(autoGenState.selectedDates);
+            currentHours += weeks.length * 1;
+
+            // Pharmacy review - 0.5 hours
+            currentHours += 0.5;
+
+            document.getElementById('autoCurrentHours').textContent = currentHours.toFixed(1);
+            document.getElementById('autoTargetHours').textContent = targetHours;
+        }
+
+        // Get unique weeks from selected dates
+        function getWeeksFromDates(dates) {
+            const weeks = new Set();
+            dates.forEach(dateStr => {
+                const date = new Date(dateStr + 'T00:00:00');
+                const weekNum = getWeekNumber(date);
+                weeks.add(weekNum);
+            });
+            return Array.from(weeks);
+        }
+
+        function getWeekNumber(date) {
+            const startOfYear = new Date(date.getFullYear(), 0, 1);
+            const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
+            return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+        }
+
+        // Get first date of each week
+        function getFirstDateOfEachWeek(dates) {
+            const weekDates = {};
+            dates.sort().forEach(dateStr => {
+                const date = new Date(dateStr + 'T00:00:00');
+                const weekNum = getWeekNumber(date);
+                if (!weekDates[weekNum]) {
+                    weekDates[weekNum] = dateStr;
+                }
+            });
+            return Object.values(weekDates);
+        }
+
+        // Generate the report
+        function generateAutoReport() {
+            const facilityId = document.getElementById('autoFacility').value;
+            const facility = appData.facilities.find(f => f.id == facilityId);
+            const targetHours = facility.hours;
+            const month = document.getElementById('autoMonth').value;
+
+            autoGenState.generatedTasks = [];
+            let totalHours = 0;
+
+            // 1. Add Admin/DON meetings for each week (first date of week)
+            const weekDates = getFirstDateOfEachWeek(autoGenState.selectedDates);
+            weekDates.forEach(dateStr => {
+                const task = {
+                    ...fixedTasks.adminMeeting,
+                    date: dateStr,
+                    hours: 1
+                };
+                autoGenState.generatedTasks.push(task);
+                totalHours += 1;
+            });
+
+            // 2. Add Pharmacy review (on last selected date)
+            const sortedDates = [...autoGenState.selectedDates].sort();
+            if (sortedDates.length > 0) {
+                const task = {
+                    ...fixedTasks.pharmacyReview,
+                    date: sortedDates[sortedDates.length - 1],
+                    hours: 0.5
+                };
+                autoGenState.generatedTasks.push(task);
+                totalHours += 0.5;
+            }
+
+            // 3. Add QAPI if checked
+            if (document.getElementById('autoQAPI').checked) {
+                const qapiDate = document.getElementById('autoQAPIDate').value;
+                const qapiHours = parseFloat(document.getElementById('autoQAPIHours').value) || 1;
+                const task = {
+                    ...fixedTasks.qapiMeeting,
+                    date: qapiDate,
+                    hours: qapiHours
+                };
+                autoGenState.generatedTasks.push(task);
+                totalHours += qapiHours;
+            }
+
+            // 4. Add Survey if checked
+            if (document.getElementById('autoSurvey').checked) {
+                const surveyDate = document.getElementById('autoSurveyDate').value;
+                const surveyHours = parseFloat(document.getElementById('autoSurveyHours').value) || 2;
+                const task = {
+                    ...fixedTasks.surveyParticipation,
+                    date: surveyDate,
+                    hours: surveyHours
+                };
+                autoGenState.generatedTasks.push(task);
+                totalHours += surveyHours;
+            }
+
+            // 5. Add PIP entries if checked
+            if (document.getElementById('autoPIP').checked) {
+                const pipDesc = document.getElementById('autoPIPDescription').value;
+                autoGenState.pipEntries.forEach(entry => {
+                    if (entry.date && entry.hours > 0) {
+                        const task = {
+                            ...fixedTasks.pipDevelopment,
+                            description: fixedTasks.pipDevelopment.description + (pipDesc ? ` Focus: ${pipDesc}` : ''),
+                            date: entry.date,
+                            hours: entry.hours
+                        };
+                        autoGenState.generatedTasks.push(task);
+                        totalHours += entry.hours;
+                    }
+                });
+            }
+
+            // 6. Add Special entries
+            autoGenState.specialEntries.forEach(entry => {
+                if (entry.date && entry.description && entry.hours > 0) {
+                    const task = {
+                        category: 9,
+                        name: 'Special project',
+                        description: entry.description,
+                        date: entry.date,
+                        hours: entry.hours
+                    };
+                    autoGenState.generatedTasks.push(task);
+                    totalHours += entry.hours;
+                }
+            });
+
+            // 7. Fill remaining hours with random tasks (3-month no-repeat rule)
+            const remainingHours = targetHours - totalHours;
+            if (remainingHours > 0) {
+                const availableTasks = getAvailableRandomTasks(facilityId, month);
+                const randomTasks = selectRandomTasks(availableTasks, remainingHours, sortedDates);
+                
+                randomTasks.forEach(task => {
+                    autoGenState.generatedTasks.push(task);
+                    totalHours += task.hours;
+                });
+
+                // Track used tasks for this facility/month
+                trackUsedTasks(facilityId, month, randomTasks);
+            }
+
+            // Display preview
+            displayAutoReportPreview(totalHours);
+
+            document.getElementById('autoGenStep4').style.display = 'none';
+            document.getElementById('autoGenStep5').style.display = 'block';
+            scrollToAutoGenerator();
+        }
+
+        // Get available random tasks (not used in last 3 months for this facility)
+        function getAvailableRandomTasks(facilityId, month) {
+            const [year, monthNum] = month.split('-');
+            const recentMonths = [];
+            
+            // Get last 3 months
+            for (let i = 1; i <= 3; i++) {
+                const d = new Date(year, monthNum - 1 - i, 1);
+                recentMonths.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+            }
+
+            // Get tasks used in recent months for this facility
+            const usedTasks = new Set();
+            if (appData.taskHistory && appData.taskHistory[facilityId]) {
+                recentMonths.forEach(m => {
+                    if (appData.taskHistory[facilityId][m]) {
+                        appData.taskHistory[facilityId][m].forEach(t => usedTasks.add(t));
+                    }
+                });
+            }
+
+            // Filter out used tasks
+            return randomizableTasks.filter(t => !usedTasks.has(t.name));
+        }
+
+        // Select random tasks to fill remaining hours
+        function selectRandomTasks(availableTasks, hoursNeeded, dates) {
+            const selected = [];
+            let hoursRemaining = hoursNeeded;
+            const shuffled = [...availableTasks].sort(() => Math.random() - 0.5);
+
+            let dateIndex = 0;
+
+            for (const task of shuffled) {
+                if (hoursRemaining <= 0) break;
+
+                // Assign 0.5 to 1.5 hours per task randomly
+                const taskHours = Math.min(hoursRemaining, 0.5 + Math.random());
+                const roundedHours = Math.round(taskHours * 2) / 2; // Round to nearest 0.5
+
+                if (roundedHours > 0) {
+                    selected.push({
+                        ...task,
+                        date: dates[dateIndex % dates.length],
+                        hours: roundedHours
+                    });
+                    hoursRemaining -= roundedHours;
+                    dateIndex++;
+                }
+            }
+
+            // If we still need hours, distribute remaining to existing tasks in 0.5hr increments
+            while (hoursRemaining >= 0.5 && selected.length > 0) {
+                const randomTask = selected[Math.floor(Math.random() * selected.length)];
+                randomTask.hours += 0.5;
+                hoursRemaining -= 0.5;
+            }
+
+            // Absorb any small remaining fraction (< 0.5) into the last task
+            if (hoursRemaining > 0 && selected.length > 0) {
+                const lastTask = selected[selected.length - 1];
+                lastTask.hours = Math.round((lastTask.hours + hoursRemaining) * 2) / 2;
+            }
+
+            return selected;
+        }
+
+        // Track used tasks for facility/month
+        function trackUsedTasks(facilityId, month, tasks) {
+            if (!appData.taskHistory) appData.taskHistory = {};
+            if (!appData.taskHistory[facilityId]) appData.taskHistory[facilityId] = {};
+            
+            appData.taskHistory[facilityId][month] = tasks.map(t => t.name);
+            saveData();
+        }
+
+        // Display report preview
+        function displayAutoReportPreview(totalHours) {
+            const provider = appData.providers.find(p => p.id == document.getElementById('autoProvider').value);
+            const facility = appData.facilities.find(f => f.id == document.getElementById('autoFacility').value);
+            const month = document.getElementById('autoMonth').value;
+            const [year, monthNum] = month.split('-');
+            const monthName = new Date(year, monthNum - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            // Sort tasks by date
+            const sortedTasks = [...autoGenState.generatedTasks].sort((a, b) => a.date.localeCompare(b.date));
+
+            let html = `
+                <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid #E5E7EB;">
+                    <h3 style="color: #0F766E; margin-bottom: 8px;">PostAcuteNC, PC</h3>
+                    <strong>Medical Directorship Billing Report</strong><br><br>
+                    <strong>Provider:</strong> ${escapeHTML(provider.name)}<br>
+                    <strong>Facility:</strong> ${escapeHTML(facility.name)}<br>
+                    <strong>Report Period:</strong> ${monthName}
+                </div>
+                <h4 style="margin-bottom: 12px; color: #374151;">Tasks Completed</h4>
+            `;
+
+            sortedTasks.forEach(task => {
+                const dateDisplay = new Date(task.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                html += `
+                    <div style="padding: 12px; border-bottom: 1px solid #E5E7EB;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                            <strong style="color: #1F2937;">${escapeHTML(task.name)}</strong>
+                            <span style="color: #0F766E; font-weight: 600; white-space: nowrap; margin-left: 10px;">${task.hours} hr${task.hours !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #6B7280; margin-bottom: 4px;">${dateDisplay}</div>
+                        <div style="font-size: 13px; color: #4B5563; font-style: italic;">"${escapeHTML(task.description)}"</div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div style="margin-top: 16px; padding: 12px; background: #F0FDFA; border-radius: 8px;">
+                    <strong>Total Hours:</strong> ${totalHours.toFixed(1)} hours
+                </div>
+            `;
+
+            document.getElementById('autoReportPreview').innerHTML = html;
+            document.getElementById('autoTotalHours').textContent = totalHours.toFixed(1);
+        }
+
+        // Save auto-generated report
+        function saveAutoReport() {
+            const signature = document.getElementById('autoSignature').value.trim();
+            
+            if (!signature) {
+                showAlert('Please sign the report', 'error');
+                return;
+            }
+
+            const providerId = document.getElementById('autoProvider').value;
+            const facilityId = document.getElementById('autoFacility').value;
+            const month = document.getElementById('autoMonth').value;
+
+            const provider = appData.providers.find(p => p.id == providerId);
+            const facility = appData.facilities.find(f => f.id == facilityId);
+
+            const totalHours = autoGenState.generatedTasks.reduce((sum, t) => sum + t.hours, 0);
+
+            const report = {
+                id: Date.now(),
+                providerId: parseInt(providerId),
+                providerName: provider.name,
+                providerEmail: provider.email,
+                facilityId: parseInt(facilityId),
+                facilityName: facility.name,
+                facilityEmail: facility.email,
+                requiredHours: facility.hours,
+                month: month,
+                tasks: autoGenState.generatedTasks.map(t => ({
+                    id: Date.now() + Math.random(),
+                    name: t.name,
+                    description: t.description,
+                    date: t.date,
+                    hours: t.hours
+                })),
+                totalHours: totalHours,
+                signature: signature,
+                signedDate: new Date().toISOString(),
+                autoGenerated: true
+            };
+
+            appData.reports.push(report);
+            saveData();
+
+            // Reset auto-generator
+            resetAutoGenerator();
+
+            showAlert('Report saved successfully!', 'success');
+            
+            // Switch to history tab
+            document.getElementById('settings-tab').classList.remove('active');
+            document.getElementById('history-tab').classList.add('active');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            displayHistory();
+        }
+
+        // Update signature preview
+        function updateSignaturePreview() {
+            const signature = document.getElementById('autoSignature').value;
+            const preview = document.getElementById('signaturePreview');
+            
+            if (signature) {
+                document.getElementById('signatureText').textContent = signature;
+                document.getElementById('signatureTimestamp').textContent = new Date().toLocaleString();
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Reset auto-generator to initial state
+        function resetAutoGenerator() {
+            autoGenState = {
+                selectedDates: [],
+                specialEntries: [],
+                pipEntries: [],
+                generatedTasks: []
+            };
+
+            // Reset form
+            document.getElementById('autoProvider').value = '';
+            document.getElementById('autoFacility').value = '';
+            document.getElementById('autoMonth').value = '';
+            document.getElementById('autoFacilityInfo').style.display = 'none';
+            document.getElementById('autoQAPI').checked = false;
+            document.getElementById('autoQAPIDetails').style.display = 'none';
+            document.getElementById('autoSurvey').checked = false;
+            document.getElementById('autoSurveyDetails').style.display = 'none';
+            document.getElementById('autoPIP').checked = false;
+            document.getElementById('autoPIPDetails').style.display = 'none';
+            document.getElementById('autoPIPDates').innerHTML = '';
+            document.getElementById('autoSpecial').checked = false;
+            document.getElementById('autoSpecialDetails').style.display = 'none';
+            document.getElementById('autoSpecialEntries').innerHTML = '';
+            document.getElementById('autoSignature').value = '';
+            document.getElementById('signaturePreview').style.display = 'none';
+
+            // Go back to step 1
+            document.getElementById('autoGenStep1').style.display = 'block';
+            document.getElementById('autoGenStep2').style.display = 'none';
+            document.getElementById('autoGenStep3').style.display = 'none';
+            document.getElementById('autoGenStep4').style.display = 'none';
+            document.getElementById('autoGenStep5').style.display = 'none';
+        }
+
+        // Update openSettings to initialize auto-generator
+        const originalOpenSettings = typeof openSettings === 'function' ? openSettings : null;
 
         // Initialize on load
         window.onload = init;
