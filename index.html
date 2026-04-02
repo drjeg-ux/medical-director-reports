@@ -1639,15 +1639,13 @@
             }
 
             if (!signature) {
-                alert('⚠️ Signature Required\n\nPlease type your full name in the signature field before saving the report.');
-                // Scroll to signature section and focus on it
+                showNotifyModal('Signature Required', 'Please type your full name in the signature field before saving the report.', '✍️');
                 document.getElementById('signatureName').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                document.getElementById('signatureName').focus();
                 return;
             }
 
             if (appData.selectedTasks.length === 0) {
-                showAlert('Please add at least one task', 'error');
+                showNotifyModal('No Tasks Added', 'Please add at least one task before saving the report.', '📋');
                 return;
             }
 
@@ -1687,13 +1685,11 @@
             saveData();
 
             showAlert('Report saved successfully!', 'success');
-            
-            // Ask if user wants to create another
+
+            // Offer download and option to create another
             setTimeout(() => {
-                if (confirm('Report saved! Would you like to clear the form and create another report?')) {
-                    clearForm();
-                }
-            }, 1000);
+                showPostSaveModal(report.id);
+            }, 500);
         }
 
         function generateReportHTML(report) {
@@ -1827,14 +1823,13 @@
             }
 
             if (!signature) {
-                alert('⚠️ Signature Required\n\nPlease type your full name in the signature field before emailing the report.');
+                showNotifyModal('Signature Required', 'Please type your full name in the signature field before emailing the report.', '✍️');
                 document.getElementById('signatureName').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                document.getElementById('signatureName').focus();
                 return;
             }
 
             if (appData.selectedTasks.length === 0) {
-                showAlert('Please add at least one task', 'error');
+                showNotifyModal('No Tasks Added', 'Please add at least one task before emailing the report.', '📋');
                 return;
             }
 
@@ -1942,6 +1937,7 @@ This is an automatically generated report.
                             </div>
                             <div>
                                 <button class="button" onclick="viewReport(${report.id})">View</button>
+                                <button class="button" onclick="downloadReport(${report.id})">📄 Download</button>
                                 <button class="button secondary" onclick="emailReportAgain(${report.id})">📧 Email Again</button>
                                 <button class="button danger" onclick="deleteReport(${report.id})">Delete</button>
                             </div>
@@ -1972,6 +1968,25 @@ This is an automatically generated report.
                     showReportInModal(report);
                 }
             }
+        }
+
+        function downloadReport(reportId) {
+            const report = appData.reports.find(r => r.id === reportId);
+            if (!report) return;
+
+            const html = generateReportHTML(report);
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const [dYear, dMonth] = report.month.split('-');
+            const monthLabel = new Date(dYear, dMonth - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-');
+            a.download = `${report.providerName.replace(/\s+/g, '-')}_${report.facilityName.replace(/\s+/g, '-')}_${monthLabel}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showAlert('Report downloaded!', 'success');
         }
 
         function showReportInModal(report) {
@@ -2454,8 +2469,10 @@ This is an automatically generated report.
 
             document.getElementById('autoQAPIDate').min = firstDay;
             document.getElementById('autoQAPIDate').max = lastDate;
+            document.getElementById('autoQAPIDate').value = firstDay;
             document.getElementById('autoSurveyDate').min = firstDay;
             document.getElementById('autoSurveyDate').max = lastDate;
+            document.getElementById('autoSurveyDate').value = firstDay;
             // PIP dates are set dynamically when entries are added
 
             document.getElementById('autoGenStep1').style.display = 'none';
@@ -2547,7 +2564,7 @@ This is an automatically generated report.
             entryDiv.innerHTML = `
                 <div style="flex: 1; min-width: 140px;">
                     <label style="font-size: 12px; color: #6B7280;">Date</label>
-                    <input type="date" id="pip-date-${entryId}" min="${firstDay}" max="${lastDate}" onchange="updatePIPEntry(${entryId})" style="width: 100%;">
+                    <input type="date" id="pip-date-${entryId}" min="${firstDay}" max="${lastDate}" value="${firstDay}" onchange="updatePIPEntry(${entryId})" style="width: 100%;">
                 </div>
                 <div style="width: 80px;">
                     <label style="font-size: 12px; color: #6B7280;">Hours</label>
@@ -2605,7 +2622,7 @@ This is an automatically generated report.
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 140px;">
                         <label style="font-size: 12px; color: #6B7280;">Date</label>
-                        <input type="date" id="special-date-${entryId}" min="${firstDay}" max="${lastDate}" onchange="updateSpecialEntry(${entryId})" style="width: 100%;">
+                        <input type="date" id="special-date-${entryId}" min="${firstDay}" max="${lastDate}" value="${firstDay}" onchange="updateSpecialEntry(${entryId})" style="width: 100%;">
                     </div>
                     <div style="width: 80px;">
                         <label style="font-size: 12px; color: #6B7280;">Hours</label>
@@ -3011,7 +3028,7 @@ This is an automatically generated report.
             const signature = document.getElementById('autoSignature').value.trim();
             
             if (!signature) {
-                showAlert('Please sign the report', 'error');
+                showNotifyModal('Signature Required', 'Please select your signature from the dropdown before saving the report.', '✍️');
                 return;
             }
 
@@ -3054,13 +3071,18 @@ This is an automatically generated report.
             resetAutoGenerator();
 
             showAlert('Report saved successfully!', 'success');
-            
+
             // Switch to history tab
             document.getElementById('settings-tab').classList.remove('active');
             document.getElementById('history-tab').classList.add('active');
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab')[1].classList.add('active');
             displayHistory();
+
+            // Offer download
+            setTimeout(() => {
+                showPostSaveModal(report.id);
+            }, 500);
         }
 
         // Update signature preview
@@ -3115,6 +3137,46 @@ This is an automatically generated report.
         // Update openSettings to initialize auto-generator
         const originalOpenSettings = typeof openSettings === 'function' ? openSettings : null;
 
+        // Post-save modal with download option
+        let postSaveReportId = null;
+
+        function showPostSaveModal(reportId) {
+            postSaveReportId = reportId;
+            document.getElementById('postSaveModal').classList.add('active');
+        }
+
+        function closePostSaveModal() {
+            document.getElementById('postSaveModal').classList.remove('active');
+            postSaveReportId = null;
+        }
+
+        function postSaveDownload() {
+            if (postSaveReportId) downloadReport(postSaveReportId);
+            closePostSaveModal();
+        }
+
+        function postSaveNewReport() {
+            closePostSaveModal();
+            // Switch to Create tab and clear
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('create-tab').classList.add('active');
+            clearForm();
+        }
+
+        // Notification modal
+        function showNotifyModal(title, message, icon = '⚠️') {
+            document.getElementById('notifyIcon').textContent = icon;
+            document.getElementById('notifyTitle').textContent = title;
+            document.getElementById('notifyMessage').textContent = message;
+            document.getElementById('notifyModal').classList.add('active');
+        }
+
+        function closeNotifyModal() {
+            document.getElementById('notifyModal').classList.remove('active');
+        }
+
         // Initialize on load
         window.onload = init;
     </script>
@@ -3131,6 +3193,32 @@ This is an automatically generated report.
             <div class="modal-buttons">
                 <button class="modal-button secondary" onclick="closePasswordModal(false)">Cancel</button>
                 <button class="modal-button primary" onclick="submitPassword()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notifyModal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 12px;" id="notifyIcon">⚠️</div>
+            <div class="modal-header" id="notifyTitle">Missing Step</div>
+            <div class="modal-description" id="notifyMessage">Please complete all required fields.</div>
+            <div class="modal-buttons" style="justify-content: center;">
+                <button class="modal-button primary" onclick="closeNotifyModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post-Save Modal -->
+    <div id="postSaveModal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+            <div class="modal-header">Report Saved!</div>
+            <div class="modal-description">What would you like to do next?</div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="modal-button primary" onclick="postSaveDownload()" style="width: 100%;">📄 Download Report</button>
+                <button class="modal-button secondary" onclick="postSaveNewReport()" style="width: 100%;">📋 Create Another Report</button>
+                <button class="modal-button secondary" onclick="closePostSaveModal()" style="width: 100%;">Done</button>
             </div>
         </div>
     </div>
