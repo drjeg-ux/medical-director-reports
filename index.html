@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Directorship Billing Reports</title>
+    <!-- html2pdf.js for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -892,12 +896,12 @@
 
                 <div style="margin-top: 30px;">
                     <button class="button" onclick="saveAndGenerateReport()">💾 Save Report</button>
-                    <button class="button secondary" onclick="emailReport()">📧 Email Report</button>
+                    <button class="button secondary" onclick="emailReport()">📧 Email (Mailto)</button>
                     <button class="button danger" onclick="clearForm()">🗑️ Clear Form</button>
                 </div>
                 <div style="margin-top: 10px; color: #718096; font-size: 13px; text-align: center;">
-                    <p><strong>Save Report:</strong> Saves to report history (view/print from History tab)</p>
-                    <p><strong>Email:</strong> Opens your email client with report details</p>
+                    <p><strong>Save Report:</strong> Saves to report history. After saving, you can email PDF or download.</p>
+                    <p><strong>Email (Mailto):</strong> Opens your email client with report text (no PDF attachment)</p>
                     <p><strong>Clear Form:</strong> Reset form to create a new report</p>
                 </div>
             </div>
@@ -1096,6 +1100,10 @@
                         <label>Email Address</label>
                         <input type="email" id="newProviderEmail" placeholder="provider@example.com">
                     </div>
+                    <div class="form-group">
+                        <label>CC Email (optional)</label>
+                        <input type="email" id="newProviderCC" placeholder="cc@example.com">
+                    </div>
                     <button class="button" onclick="addProvider()">Add Provider</button>
                     <div id="providersList" style="margin-top: 20px;"></div>
                 </div>
@@ -1120,17 +1128,51 @@
                         <label>Contact Email</label>
                         <input type="email" id="newFacilityEmail" placeholder="facility@example.com">
                     </div>
+                    <div class="form-group">
+                        <label>CC Email (optional)</label>
+                        <input type="email" id="newFacilityCC" placeholder="cc@example.com">
+                    </div>
                     <button class="button" onclick="addFacility()">Add Facility</button>
                     <div id="facilitiesList" style="margin-top: 20px;"></div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>📧 Office Manager Email</h3>
+                    <h3>📧 Email Routing</h3>
+                    <p style="font-size: 12px; color: #718096; margin-bottom: 15px;">Configure where reports are sent and who gets CC'd automatically.</p>
                     <div class="form-group">
-                        <label>Email Address</label>
+                        <label>Reports Sent To (main recipient)</label>
+                        <input type="email" id="reportsToEmail" placeholder="reports@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Always CC (comma-separated)</label>
+                        <input type="text" id="globalCCEmails" placeholder="admin@example.com, manager@example.com">
+                        <small style="color: #718096;">These addresses are CC'd on every report email</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Office Manager Email</label>
                         <input type="email" id="officeManagerEmail" placeholder="manager@example.com">
                     </div>
-                    <button class="button" onclick="saveOfficeManagerEmail()">Save Email</button>
+                    <button class="button" onclick="saveEmailRouting()">Save Email Routing</button>
+                </div>
+
+                <div class="settings-card">
+                    <h3>📨 EmailJS Setup (Auto-Email with PDF)</h3>
+                    <p style="font-size: 12px; color: #718096; margin-bottom: 15px;">Configure EmailJS to automatically send reports as PDF attachments. <a href="https://www.emailjs.com/" target="_blank" style="color: #14B8A6;">Create free account</a></p>
+                    <div class="form-group">
+                        <label>Public Key</label>
+                        <input type="text" id="emailjsPublicKey" placeholder="e.g., abc123XYZ">
+                    </div>
+                    <div class="form-group">
+                        <label>Service ID</label>
+                        <input type="text" id="emailjsServiceId" placeholder="e.g., service_xxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>Template ID</label>
+                        <input type="text" id="emailjsTemplateId" placeholder="e.g., template_xxxxxx">
+                    </div>
+                    <button class="button" onclick="saveEmailJSConfig()">Save EmailJS Config</button>
+                    <button class="button secondary" onclick="testEmailJS()" style="margin-left: 8px;">Test Connection</button>
+                    <div id="emailjsStatus" style="margin-top: 10px;"></div>
                 </div>
 
                 <div class="settings-card">
@@ -1269,25 +1311,28 @@
         // App data structure
         let appData = {
             providers: [
-                { id: 1, name: 'Jose Gonzalez MD', email: 'drjeg@postacutenc.com' },
-                { id: 2, name: 'Eileen Caquias Gonzalez MD', email: 'drecg@postacutenc.com' }
+                { id: 1, name: 'Jose Gonzalez MD', email: 'drjeg@postacutenc.com', ccEmail: '' },
+                { id: 2, name: 'Eileen Caquias Gonzalez MD', email: 'drecg@postacutenc.com', ccEmail: '' }
             ],
             facilities: [
-                { id: 1, name: 'Brookstone Living Center', hours: 10, email: '', providerId: 1 },
-                { id: 2, name: 'Brunswick Cove', hours: 16, email: '', providerId: 1 },
-                { id: 3, name: 'North Chase Nursing & Rehab', hours: 14, email: '', providerId: 1 },
-                { id: 4, name: 'Bladen East', hours: 14, email: '', providerId: 1 },
-                { id: 5, name: 'Harborview', hours: 16, email: '', providerId: 2 },
-                { id: 6, name: 'Bolivia Rehabilitation & Health', hours: 12, email: '', providerId: 2 },
-                { id: 7, name: 'Warsaw Rehabilitation & Health', hours: 10, email: '', providerId: 2 },
-                { id: 8, name: 'Elizabethtown Healthcare & Rehab', hours: 12, email: '', providerId: 2 }
+                { id: 1, name: 'Brookstone Living Center', hours: 10, email: '', providerId: 1, ccEmail: '' },
+                { id: 2, name: 'Brunswick Cove', hours: 16, email: '', providerId: 1, ccEmail: '' },
+                { id: 3, name: 'North Chase Nursing & Rehab', hours: 14, email: '', providerId: 1, ccEmail: '' },
+                { id: 4, name: 'Bladen East', hours: 14, email: '', providerId: 1, ccEmail: '' },
+                { id: 5, name: 'Harborview', hours: 16, email: '', providerId: 2, ccEmail: '' },
+                { id: 6, name: 'Bolivia Rehabilitation & Health', hours: 12, email: '', providerId: 2, ccEmail: '' },
+                { id: 7, name: 'Warsaw Rehabilitation & Health', hours: 10, email: '', providerId: 2, ccEmail: '' },
+                { id: 8, name: 'Elizabethtown Healthcare & Rehab', hours: 12, email: '', providerId: 2, ccEmail: '' }
             ],
             reports: [],
+            reportsToEmail: 'reports@postacutenc.com',
+            globalCCEmails: 'admin@postacutenc.com',
             officeManagerEmail: 'admin@postacutenc.com',
             selectedTasks: [],
             adminPasswordHash: '', // SHA-256 hash of admin password (auto-migrated on first load)
             _defaultPassword: 'PostAcute2026', // Only used for initial hash migration
-            taskHistory: {} // Track tasks used per facility: { facilityId: { 'YYYY-MM': ['task1', 'task2'] } }
+            taskHistory: {}, // Track tasks used per facility: { facilityId: { 'YYYY-MM': ['task1', 'task2'] } }
+            emailjs: { publicKey: '', serviceId: '', templateId: '' }
         };
 
         // Randomizable tasks pool (12 tasks total)
@@ -1340,6 +1385,12 @@
                 if (!f.providerId) f.providerId = 1;
             });
 
+            // Migrate email routing fields
+            if (!appData.reportsToEmail) appData.reportsToEmail = '';
+            if (!appData.globalCCEmails) appData.globalCCEmails = '';
+            appData.providers.forEach(p => { if (!p.ccEmail) p.ccEmail = ''; });
+            appData.facilities.forEach(f => { if (!f.ccEmail) f.ccEmail = ''; });
+
             // Migrate plain-text password to hash
             if (appData.adminPassword) {
                 // Old format: plain text password exists, migrate it
@@ -1365,6 +1416,7 @@
         async function init() {
             await loadData();
             populateMonthDropdown();
+            initEmailJS();
         }
 
         // Populate month dropdown with current month and 3 months back
@@ -1937,8 +1989,9 @@ This is an automatically generated report.
                             </div>
                             <div>
                                 <button class="button" onclick="viewReport(${report.id})">View</button>
-                                <button class="button" onclick="downloadReport(${report.id})">📄 Download</button>
-                                <button class="button secondary" onclick="emailReportAgain(${report.id})">📧 Email Again</button>
+                                <button class="button" onclick="downloadReportPDF(${report.id})">📄 PDF</button>
+                                <button class="button secondary" onclick="emailReportWithPDF(${report.id})">📨 Email PDF</button>
+                                <button class="button secondary" onclick="emailReportAgain(${report.id})">📧 Mailto</button>
                                 <button class="button danger" onclick="deleteReport(${report.id})">Delete</button>
                             </div>
                         </div>
@@ -2137,7 +2190,7 @@ This is an automatically generated report.
                     <div class="facility-item">
                         <div>
                             <strong>${escapeHTML(p.name)}</strong><br>
-                            <small style="color: #718096;">${escapeHTML(p.email)}</small>
+                            <small style="color: #718096;">${escapeHTML(p.email)}${p.ccEmail ? ' • CC: ' + escapeHTML(p.ccEmail) : ''}</small>
                         </div>
                         <button class="button danger" style="padding: 8px 15px; font-size: 12px;"
                                 onclick="deleteProvider(${p.id})">Delete</button>
@@ -2162,7 +2215,7 @@ This is an automatically generated report.
                     <div class="facility-item">
                         <div>
                             <strong>${escapeHTML(f.name)}</strong><br>
-                            <small style="color: #718096;">${f.hours} hrs/mo • ${providerLabel} • ${escapeHTML(f.email)}</small>
+                            <small style="color: #718096;">${f.hours} hrs/mo • ${providerLabel} • ${escapeHTML(f.email)}${f.ccEmail ? ' • CC: ' + escapeHTML(f.ccEmail) : ''}</small>
                         </div>
                         <button class="button danger" style="padding: 8px 15px; font-size: 12px;"
                                 onclick="deleteFacility(${f.id})">Delete</button>
@@ -2172,11 +2225,21 @@ This is an automatically generated report.
 
             // Office Manager Email
             document.getElementById('officeManagerEmail').value = appData.officeManagerEmail;
+            document.getElementById('reportsToEmail').value = appData.reportsToEmail || '';
+            document.getElementById('globalCCEmails').value = appData.globalCCEmails || '';
+
+            // EmailJS config
+            if (appData.emailjs) {
+                document.getElementById('emailjsPublicKey').value = appData.emailjs.publicKey || '';
+                document.getElementById('emailjsServiceId').value = appData.emailjs.serviceId || '';
+                document.getElementById('emailjsTemplateId').value = appData.emailjs.templateId || '';
+            }
         }
 
         function addProvider() {
             const name = document.getElementById('newProviderName').value.trim();
             const email = document.getElementById('newProviderEmail').value.trim();
+            const ccEmail = document.getElementById('newProviderCC').value.trim();
 
             if (!name || !email) {
                 showAlert('Please enter both name and email', 'error');
@@ -2184,13 +2247,14 @@ This is an automatically generated report.
             }
 
             const newId = Math.max(...appData.providers.map(p => p.id), 0) + 1;
-            appData.providers.push({ id: newId, name, email });
+            appData.providers.push({ id: newId, name, email, ccEmail });
             saveData();
             updateAllLists();
             updateSettingsLists();
 
             document.getElementById('newProviderName').value = '';
             document.getElementById('newProviderEmail').value = '';
+            document.getElementById('newProviderCC').value = '';
             showAlert('Provider added successfully!', 'success');
         }
 
@@ -2209,6 +2273,7 @@ This is an automatically generated report.
             const providerId = parseInt(document.getElementById('newFacilityProvider').value);
             const hours = parseInt(document.getElementById('newFacilityHours').value);
             const email = document.getElementById('newFacilityEmail').value.trim();
+            const ccEmail = document.getElementById('newFacilityCC').value.trim();
 
             if (!name || !providerId || !hours || !email) {
                 showAlert('Please fill in all fields including assigned provider', 'error');
@@ -2216,7 +2281,7 @@ This is an automatically generated report.
             }
 
             const newId = Math.max(...appData.facilities.map(f => f.id), 0) + 1;
-            appData.facilities.push({ id: newId, name, hours, email, providerId });
+            appData.facilities.push({ id: newId, name, hours, email, providerId, ccEmail });
             saveData();
             updateSettingsLists();
 
@@ -2224,6 +2289,7 @@ This is an automatically generated report.
             document.getElementById('newFacilityProvider').value = '';
             document.getElementById('newFacilityHours').value = '';
             document.getElementById('newFacilityEmail').value = '';
+            document.getElementById('newFacilityCC').value = '';
             showAlert('Facility added successfully!', 'success');
         }
 
@@ -2236,15 +2302,12 @@ This is an automatically generated report.
             }
         }
 
-        function saveOfficeManagerEmail() {
-            const email = document.getElementById('officeManagerEmail').value.trim();
-            if (!email) {
-                showAlert('Please enter an email address', 'error');
-                return;
-            }
-            appData.officeManagerEmail = email;
+        function saveEmailRouting() {
+            appData.reportsToEmail = document.getElementById('reportsToEmail').value.trim();
+            appData.globalCCEmails = document.getElementById('globalCCEmails').value.trim();
+            appData.officeManagerEmail = document.getElementById('officeManagerEmail').value.trim();
             saveData();
-            showAlert('Office manager email saved!', 'success');
+            showAlert('Email routing saved!', 'success');
         }
 
         async function changeAdminPassword() {
@@ -2273,6 +2336,232 @@ This is an automatically generated report.
             document.getElementById('confirmAdminPassword').value = '';
             
             showAlert('Admin password changed successfully!', 'success');
+        }
+
+        // =====================================
+        // EMAILJS + PDF FUNCTIONS
+        // =====================================
+
+        function saveEmailJSConfig() {
+            const publicKey = document.getElementById('emailjsPublicKey').value.trim();
+            const serviceId = document.getElementById('emailjsServiceId').value.trim();
+            const templateId = document.getElementById('emailjsTemplateId').value.trim();
+
+            if (!publicKey || !serviceId || !templateId) {
+                showAlert('Please fill in all EmailJS fields', 'error');
+                return;
+            }
+
+            appData.emailjs = { publicKey, serviceId, templateId };
+            saveData();
+
+            // Initialize EmailJS
+            emailjs.init(publicKey);
+
+            showAlert('EmailJS configuration saved!', 'success');
+        }
+
+        function testEmailJS() {
+            const config = appData.emailjs;
+            if (!config || !config.publicKey || !config.serviceId || !config.templateId) {
+                showAlert('Please save your EmailJS config first', 'error');
+                return;
+            }
+
+            emailjs.init(config.publicKey);
+
+            const statusDiv = document.getElementById('emailjsStatus');
+            statusDiv.innerHTML = '<span style="color: #6B7280;">Testing connection...</span>';
+
+            // Send a test email
+            emailjs.send(config.serviceId, config.templateId, {
+                to_email: appData.providers[0]?.email || 'test@example.com',
+                subject: 'PostAcuteNC - EmailJS Test',
+                message: 'This is a test email from your Medical Directorship Billing Reports app. If you received this, EmailJS is configured correctly!',
+                from_name: 'PostAcuteNC Billing Reports'
+            }).then(() => {
+                statusDiv.innerHTML = '<span style="color: #22C55E; font-weight: 600;">✅ Test email sent successfully!</span>';
+                showAlert('Test email sent! Check your inbox.', 'success');
+            }).catch((error) => {
+                statusDiv.innerHTML = '<span style="color: #EF4444; font-weight: 600;">❌ Failed: ' + escapeHTML(error.text || error.message || 'Unknown error') + '</span>';
+                showAlert('EmailJS test failed. Check your configuration.', 'error');
+            });
+        }
+
+        // Generate PDF blob from report
+        async function generateReportPDF(report) {
+            // Create a temporary container with the report HTML
+            const container = document.createElement('div');
+            container.innerHTML = generateReportHTML(report);
+
+            // Extract just the body content
+            const bodyMatch = container.innerHTML.match(/<body[^>]*>([\s\S]*)<\/body>/);
+            const bodyContent = bodyMatch ? bodyMatch[1] : container.innerHTML;
+
+            const printDiv = document.createElement('div');
+            printDiv.innerHTML = bodyContent;
+            printDiv.style.cssText = 'font-family: Arial, sans-serif; padding: 40px; max-width: 900px;';
+            document.body.appendChild(printDiv);
+
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: 'report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            };
+
+            try {
+                const pdfBlob = await html2pdf().set(opt).from(printDiv).outputPdf('blob');
+                return pdfBlob;
+            } finally {
+                document.body.removeChild(printDiv);
+            }
+        }
+
+        // Convert blob to base64
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // Download report as PDF
+        async function downloadReportPDF(reportId) {
+            const report = appData.reports.find(r => r.id === reportId);
+            if (!report) return;
+
+            showAlert('Generating PDF...', 'success');
+
+            try {
+                const pdfBlob = await generateReportPDF(report);
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                const [dYear, dMonth] = report.month.split('-');
+                const monthLabel = new Date(dYear, dMonth - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-');
+                a.download = `${report.providerName.replace(/\s+/g, '-')}_${report.facilityName.replace(/\s+/g, '-')}_${monthLabel}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showAlert('PDF downloaded!', 'success');
+            } catch (error) {
+                showAlert('Error generating PDF. Try the HTML download instead.', 'error');
+            }
+        }
+
+        // Email report with PDF attachment via EmailJS
+        async function emailReportWithPDF(reportId) {
+            const report = appData.reports.find(r => r.id === reportId);
+            if (!report) return;
+
+            const config = appData.emailjs;
+            if (!config || !config.publicKey || !config.serviceId || !config.templateId) {
+                showNotifyModal('EmailJS Not Configured', 'Please set up EmailJS in Settings before sending automated emails. Go to Settings (gear icon) → EmailJS Setup.', '📨');
+                return;
+            }
+
+            // Build TO recipient
+            const toEmail = appData.reportsToEmail || appData.officeManagerEmail || '';
+
+            // Build CC list
+            const ccList = [];
+
+            // Add global CC emails
+            if (appData.globalCCEmails) {
+                appData.globalCCEmails.split(',').forEach(e => {
+                    const clean = e.trim().toLowerCase();
+                    if (clean && !clean.includes('example.com')) ccList.push(clean);
+                });
+            }
+
+            // Add provider CC
+            const provider = appData.providers.find(p => p.name === report.providerName);
+            if (provider) {
+                if (provider.email && !provider.email.includes('example.com')) ccList.push(provider.email.trim());
+                if (provider.ccEmail && !provider.ccEmail.includes('example.com')) ccList.push(provider.ccEmail.trim());
+            }
+
+            // Add facility CC
+            const facility = appData.facilities.find(f => f.name === report.facilityName);
+            if (facility) {
+                if (facility.email && !facility.email.includes('example.com')) ccList.push(facility.email.trim());
+                if (facility.ccEmail && !facility.ccEmail.includes('example.com')) ccList.push(facility.ccEmail.trim());
+            }
+
+            // Add office manager
+            if (appData.officeManagerEmail && !appData.officeManagerEmail.includes('example.com')) {
+                ccList.push(appData.officeManagerEmail.trim());
+            }
+
+            // Deduplicate CC and remove the TO address from CC
+            const uniqueCC = [...new Set(ccList)].filter(e => e !== toEmail.toLowerCase());
+
+            if (!toEmail) {
+                showAlert('No "Reports Sent To" email configured. Go to Settings → Email Routing.', 'warning');
+                return;
+            }
+
+            showAlert('Generating PDF and sending email...', 'success');
+
+            try {
+                // Generate PDF
+                const pdfBlob = await generateReportPDF(report);
+                const pdfBase64 = await blobToBase64(pdfBlob);
+
+                // Build filename
+                const [dYear, dMonth] = report.month.split('-');
+                const monthLabel = new Date(dYear, dMonth - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-');
+                const filename = `${report.providerName.replace(/\s+/g, '-')}_${report.facilityName.replace(/\s+/g, '-')}_${monthLabel}.pdf`;
+
+                const monthName = new Date(dYear, dMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+                // Initialize EmailJS
+                emailjs.init(config.publicKey);
+
+                // Build task summary for email body
+                let taskSummary = '';
+                report.tasks.forEach(task => {
+                    const taskDate = task.date ? new Date(task.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                    taskSummary += `[${taskDate}] ${task.name} (${task.hours} hrs)\n`;
+                });
+
+                // Send email with PDF attachment
+                await emailjs.send(config.serviceId, config.templateId, {
+                    to_email: toEmail,
+                    cc_emails: uniqueCC.join(','),
+                    subject: `${report.providerName} - ${report.facilityName} - Medical Director Report - ${monthName}`,
+                    from_name: 'PostAcuteNC Billing Reports',
+                    provider_name: report.providerName,
+                    facility_name: report.facilityName,
+                    month_name: monthName,
+                    total_hours: report.totalHours.toFixed(1),
+                    task_summary: taskSummary,
+                    signature: report.signature,
+                    message: `Please find attached the Medical Directorship Billing Report for ${report.providerName} at ${report.facilityName} for ${monthName}.\n\nTotal Hours: ${report.totalHours.toFixed(1)}\nSigned by: ${report.signature}`,
+                    attachment: pdfBase64,
+                    attachment_name: filename
+                });
+
+                showAlert('Email sent successfully with PDF attachment!', 'success');
+            } catch (error) {
+                console.error('Email error:', error);
+                showAlert('Failed to send email: ' + (error.text || error.message || 'Unknown error'), 'error');
+            }
+        }
+
+        // Initialize EmailJS on page load if configured
+        function initEmailJS() {
+            if (appData.emailjs && appData.emailjs.publicKey) {
+                emailjs.init(appData.emailjs.publicKey);
+            }
         }
 
         // Export all data as JSON file
@@ -3155,6 +3444,16 @@ This is an automatically generated report.
             closePostSaveModal();
         }
 
+        function postSaveDownloadPDF() {
+            if (postSaveReportId) downloadReportPDF(postSaveReportId);
+            closePostSaveModal();
+        }
+
+        function postSaveEmailPDF() {
+            if (postSaveReportId) emailReportWithPDF(postSaveReportId);
+            closePostSaveModal();
+        }
+
         function postSaveNewReport() {
             closePostSaveModal();
             // Switch to Create tab and clear
@@ -3216,7 +3515,9 @@ This is an automatically generated report.
             <div class="modal-header">Report Saved!</div>
             <div class="modal-description">What would you like to do next?</div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button class="modal-button primary" onclick="postSaveDownload()" style="width: 100%;">📄 Download Report</button>
+                <button class="modal-button primary" onclick="postSaveEmailPDF()" style="width: 100%;">📨 Email Report (PDF)</button>
+                <button class="modal-button secondary" onclick="postSaveDownloadPDF()" style="width: 100%;">📄 Download PDF</button>
+                <button class="modal-button secondary" onclick="postSaveDownload()" style="width: 100%;">📄 Download HTML</button>
                 <button class="modal-button secondary" onclick="postSaveNewReport()" style="width: 100%;">📋 Create Another Report</button>
                 <button class="modal-button secondary" onclick="closePostSaveModal()" style="width: 100%;">Done</button>
             </div>
