@@ -8,6 +8,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- Firebase SDKs (compat for non-module use) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -760,11 +764,33 @@
     </style>
 </head>
 <body>
+    <!-- Login Screen -->
+    <div id="loginScreen" style="display:flex; position:fixed; top:0; left:0; width:100%; height:100%; background:linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:16px; padding:40px; max-width:400px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h2 style="text-align:center; color:#0F766E; margin-bottom:8px; font-size:24px;">PostAcuteNC</h2>
+            <p style="text-align:center; color:#6B7280; margin-bottom:24px; font-size:14px;">Medical Directorship Billing Reports</p>
+            <div id="loginError" style="display:none; background:#FEE2E2; color:#DC2626; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:500; margin-bottom:6px; color:#374151; font-size:14px;">Email</label>
+                <input type="email" id="loginEmail" placeholder="your@email.com" style="width:100%; padding:12px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none;" onfocus="this.style.borderColor='#14B8A6'" onblur="this.style.borderColor='#D1D5DB'">
+            </div>
+            <div style="margin-bottom:24px;">
+                <label style="display:block; font-weight:500; margin-bottom:6px; color:#374151; font-size:14px;">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password" style="width:100%; padding:12px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; outline:none;" onfocus="this.style.borderColor='#14B8A6'" onblur="this.style.borderColor='#D1D5DB'" onkeypress="if(event.key==='Enter')firebaseLogin()">
+            </div>
+            <button onclick="firebaseLogin()" style="width:100%; padding:14px; background:linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); color:white; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; transition:opacity 0.3s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Sign In</button>
+            <p id="loginStatus" style="text-align:center; color:#6B7280; margin-top:16px; font-size:12px;"></p>
+        </div>
+    </div>
     <div id="toastContainer"></div>
     <div class="container">
         <div class="header">
             <h1>📋 Medical Directorship Billing Reports</h1>
             <p>Professional monthly reporting system for medical directors</p>
+            <div onclick="firebaseLogout()" style="position:absolute;top:20px;left:30px;cursor:pointer;opacity:0.7;transition:opacity 0.3s;display:flex;align-items:center;gap:6px;font-size:13px;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                <span style="color:white;">Logout</span>
+            </div>
             <div class="settings-gear" onclick="openSettings()" title="Admin Settings">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -1330,6 +1356,19 @@
             ]
         };
 
+        // Firebase initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPSFZ3j4ZYNC_K_QLptzkysejASybUnSU",
+            authDomain: "postacutenc-apps.firebaseapp.com",
+            projectId: "postacutenc-apps",
+            storageBucket: "postacutenc-apps.firebasestorage.app",
+            messagingSenderId: "923725765093",
+            appId: "1:923725765093:web:f230028a50027982abf70c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
         // App data structure
         let appData = {
             providers: [
@@ -1394,12 +1433,74 @@
             generatedTasks: []
         };
 
-        // Load data from localStorage
+        // Firebase Auth functions
+        async function firebaseLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            const statusDiv = document.getElementById('loginStatus');
+
+            if (!email || !password) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Please enter email and password.';
+                return;
+            }
+
+            statusDiv.textContent = 'Signing in...';
+            errorDiv.style.display = 'none';
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // Auth state listener handles the rest
+            } catch (error) {
+                statusDiv.textContent = '';
+                errorDiv.style.display = 'block';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorDiv.textContent = 'Invalid email or password.';
+                } else {
+                    errorDiv.textContent = 'Login failed: ' + error.message;
+                }
+            }
+        }
+
+        function firebaseLogout() {
+            auth.signOut().then(() => {
+                document.getElementById('loginScreen').style.display = 'flex';
+            });
+        }
+
+        // Auth state listener
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                document.getElementById('loginScreen').style.display = 'none';
+                await init();
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+            }
+        });
+
+        // Load data from Firestore
         async function loadData() {
-            const saved = localStorage.getItem('medicalDirectorshipData');
-            if (saved) {
-                const loaded = JSON.parse(saved);
-                appData = { ...appData, ...loaded };
+            try {
+                const doc = await db.collection('apps').doc('billing-reports').get();
+                if (doc.exists) {
+                    const loaded = doc.data();
+                    appData = { ...appData, ...loaded };
+                } else {
+                    // First time: save default data to Firestore
+                    await saveData();
+                }
+            } catch (error) {
+                console.error('Error loading data from Firestore:', error);
+                // Fallback: try localStorage for migration
+                const saved = localStorage.getItem('medicalDirectorshipData');
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    appData = { ...appData, ...loaded };
+                    // Migrate localStorage data to Firestore
+                    await saveData();
+                    showAlert('Data migrated from local storage to cloud!', 'success');
+                }
             }
 
             // Migrate facilities without providerId (assign to provider 1 by default)
@@ -1415,12 +1516,10 @@
 
             // Migrate plain-text password to hash
             if (appData.adminPassword) {
-                // Old format: plain text password exists, migrate it
                 appData.adminPasswordHash = await hashPassword(appData.adminPassword);
                 delete appData.adminPassword;
                 saveData();
             } else if (!appData.adminPasswordHash) {
-                // First load ever: hash the default password
                 appData.adminPasswordHash = await hashPassword(appData._defaultPassword);
                 saveData();
             }
@@ -1429,8 +1528,14 @@
             populateTaskDropdowns();
         }
 
-        // Save data to localStorage
+        // Save data to Firestore
         function saveData() {
+            // Save to Firestore (async, fire-and-forget for responsiveness)
+            const dataToSave = { ...appData };
+            delete dataToSave._defaultPassword; // Don't store default password in cloud
+            db.collection('apps').doc('billing-reports').set(dataToSave)
+                .catch(error => console.error('Error saving to Firestore:', error));
+            // Also save to localStorage as backup
             localStorage.setItem('medicalDirectorshipData', JSON.stringify(appData));
         }
 
@@ -2817,6 +2922,7 @@ This is an automatically generated report.
             if (confirm('⚠️ WARNING: This will delete ALL data including reports, providers, and facilities. This cannot be undone. Are you absolutely sure?')) {
                 if (confirm('Last chance! This will permanently delete everything. Continue?')) {
                     localStorage.removeItem('medicalDirectorshipData');
+                    db.collection('apps').doc('billing-reports').delete().catch(e => console.error(e));
                     location.reload();
                 }
             }
@@ -3677,8 +3783,7 @@ This is an automatically generated report.
             document.getElementById('notifyModal').classList.remove('active');
         }
 
-        // Initialize on load
-        window.onload = init;
+        // Initialize on load - handled by auth.onAuthStateChanged listener
     </script>
 
     <!-- Password Modal -->
