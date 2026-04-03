@@ -2223,12 +2223,16 @@ This is an automatically generated report.
             appData.providers.forEach(p => {
                 providersList.innerHTML += `
                     <div class="facility-item">
-                        <div>
+                        <div style="flex:1;">
                             <strong>${escapeHTML(p.name)}</strong><br>
                             <small style="color: #718096;">${escapeHTML(p.email)}${p.ccEmail ? ' • CC: ' + escapeHTML(p.ccEmail) : ''}</small>
                         </div>
-                        <button class="button danger" style="padding: 8px 15px; font-size: 12px;"
-                                onclick="deleteProvider(${p.id})">Delete</button>
+                        <div style="display:flex;gap:6px;">
+                            <button class="button" style="padding: 6px 12px; font-size: 11px;"
+                                    onclick="editProvider(${p.id})">Edit</button>
+                            <button class="button danger" style="padding: 6px 12px; font-size: 11px;"
+                                    onclick="deleteProvider(${p.id})">Delete</button>
+                        </div>
                     </div>
                 `;
             });
@@ -2248,12 +2252,16 @@ This is an automatically generated report.
                 const providerLabel = assignedProvider ? escapeHTML(assignedProvider.name) : '<em>Unassigned</em>';
                 facilitiesList.innerHTML += `
                     <div class="facility-item">
-                        <div>
+                        <div style="flex:1;">
                             <strong>${escapeHTML(f.name)}</strong><br>
                             <small style="color: #718096;">${f.hours} hrs/mo • ${providerLabel} • ${escapeHTML(f.email)}${f.ccEmail ? ' • CC: ' + escapeHTML(f.ccEmail) : ''}</small>
                         </div>
-                        <button class="button danger" style="padding: 8px 15px; font-size: 12px;"
-                                onclick="deleteFacility(${f.id})">Delete</button>
+                        <div style="display:flex;gap:6px;">
+                            <button class="button" style="padding: 6px 12px; font-size: 11px;"
+                                    onclick="editFacility(${f.id})">Edit</button>
+                            <button class="button danger" style="padding: 6px 12px; font-size: 11px;"
+                                    onclick="deleteFacility(${f.id})">Delete</button>
+                        </div>
                     </div>
                 `;
             });
@@ -2335,6 +2343,96 @@ This is an automatically generated report.
                 updateSettingsLists();
                 showAlert('Facility deleted', 'success');
             }
+        }
+
+        // ---- Edit Provider ----
+        function editProvider(id) {
+            const p = appData.providers.find(pr => pr.id === id);
+            if (!p) return;
+            document.getElementById('editProviderId').value = id;
+            document.getElementById('editProviderName').value = p.name;
+            document.getElementById('editProviderEmail').value = p.email;
+            document.getElementById('editProviderCC').value = p.ccEmail || '';
+            document.getElementById('editProviderModal').style.display = 'flex';
+        }
+
+        function closeEditProviderModal() {
+            document.getElementById('editProviderModal').style.display = 'none';
+        }
+
+        function saveEditProvider() {
+            const id = parseInt(document.getElementById('editProviderId').value);
+            const name = document.getElementById('editProviderName').value.trim();
+            const email = document.getElementById('editProviderEmail').value.trim();
+            const ccEmail = document.getElementById('editProviderCC').value.trim();
+
+            if (!name || !email) {
+                showAlert('Please enter both name and email', 'error');
+                return;
+            }
+
+            const p = appData.providers.find(pr => pr.id === id);
+            if (p) {
+                p.name = name;
+                p.email = email;
+                p.ccEmail = ccEmail;
+                saveData();
+                updateAllLists();
+                updateSettingsLists();
+                showAlert('Provider updated!', 'success');
+            }
+            closeEditProviderModal();
+        }
+
+        // ---- Edit Facility ----
+        function editFacility(id) {
+            const f = appData.facilities.find(fa => fa.id === id);
+            if (!f) return;
+            document.getElementById('editFacilityId').value = id;
+            document.getElementById('editFacilityName').value = f.name;
+            document.getElementById('editFacilityHours').value = f.hours;
+            document.getElementById('editFacilityEmail').value = f.email || '';
+            document.getElementById('editFacilityCC').value = f.ccEmail || '';
+
+            // Populate provider dropdown
+            const select = document.getElementById('editFacilityProvider');
+            select.innerHTML = '<option value="">Select Provider</option>';
+            appData.providers.forEach(p => {
+                select.innerHTML += `<option value="${p.id}" ${p.id === f.providerId ? 'selected' : ''}>${escapeHTML(p.name)}</option>`;
+            });
+
+            document.getElementById('editFacilityModal').style.display = 'flex';
+        }
+
+        function closeEditFacilityModal() {
+            document.getElementById('editFacilityModal').style.display = 'none';
+        }
+
+        function saveEditFacility() {
+            const id = parseInt(document.getElementById('editFacilityId').value);
+            const name = document.getElementById('editFacilityName').value.trim();
+            const providerId = parseInt(document.getElementById('editFacilityProvider').value);
+            const hours = parseInt(document.getElementById('editFacilityHours').value);
+            const email = document.getElementById('editFacilityEmail').value.trim();
+            const ccEmail = document.getElementById('editFacilityCC').value.trim();
+
+            if (!name || !providerId || !hours) {
+                showAlert('Please fill in name, provider, and hours', 'error');
+                return;
+            }
+
+            const f = appData.facilities.find(fa => fa.id === id);
+            if (f) {
+                f.name = name;
+                f.providerId = providerId;
+                f.hours = hours;
+                f.email = email;
+                f.ccEmail = ccEmail;
+                saveData();
+                updateSettingsLists();
+                showAlert('Facility updated!', 'success');
+            }
+            closeEditFacilityModal();
         }
 
         function saveEmailRouting() {
@@ -3623,6 +3721,64 @@ This is an automatically generated report.
                 <button class="modal-button secondary" onclick="postSaveDownload()" style="width: 100%;">📄 Download HTML</button>
                 <button class="modal-button secondary" onclick="postSaveNewReport()" style="width: 100%;">📋 Create Another Report</button>
                 <button class="modal-button secondary" onclick="closePostSaveModal()" style="width: 100%;">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Provider Modal -->
+    <div id="editProviderModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:450px;">
+            <div class="modal-header">Edit Provider</div>
+            <div class="form-group">
+                <label>Provider Name</label>
+                <input type="text" id="editProviderName" placeholder="Provider name">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="editProviderEmail" placeholder="provider@example.com">
+            </div>
+            <div class="form-group">
+                <label>CC Email (optional)</label>
+                <input type="email" id="editProviderCC" placeholder="cc@example.com">
+            </div>
+            <input type="hidden" id="editProviderId">
+            <div style="display:flex;gap:10px;margin-top:15px;">
+                <button class="button" onclick="saveEditProvider()" style="flex:1;">Save Changes</button>
+                <button class="button secondary" onclick="closeEditProviderModal()" style="flex:1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Facility Modal -->
+    <div id="editFacilityModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:450px;">
+            <div class="modal-header">Edit Facility</div>
+            <div class="form-group">
+                <label>Facility Name</label>
+                <input type="text" id="editFacilityName" placeholder="Facility name">
+            </div>
+            <div class="form-group">
+                <label>Assigned Provider</label>
+                <select id="editFacilityProvider">
+                    <option value="">Select Provider</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Required Hours/Month</label>
+                <input type="number" id="editFacilityHours" placeholder="20" min="1">
+            </div>
+            <div class="form-group">
+                <label>Contact Email</label>
+                <input type="email" id="editFacilityEmail" placeholder="facility@example.com">
+            </div>
+            <div class="form-group">
+                <label>CC Email (optional)</label>
+                <input type="email" id="editFacilityCC" placeholder="cc@example.com">
+            </div>
+            <input type="hidden" id="editFacilityId">
+            <div style="display:flex;gap:10px;margin-top:15px;">
+                <button class="button" onclick="saveEditFacility()" style="flex:1;">Save Changes</button>
+                <button class="button secondary" onclick="closeEditFacilityModal()" style="flex:1;">Cancel</button>
             </div>
         </div>
     </div>
