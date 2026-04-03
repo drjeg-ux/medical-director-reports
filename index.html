@@ -2425,25 +2425,93 @@ This is an automatically generated report.
 
         // Generate PDF blob from report
         async function generateReportPDF(report) {
-            // Create a temporary container with the report HTML
-            const container = document.createElement('div');
-            container.innerHTML = generateReportHTML(report);
+            const [rYear, rMonth] = report.month.split('-');
+            const monthName = new Date(rYear, rMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-            // Extract just the body content
-            const bodyMatch = container.innerHTML.match(/<body[^>]*>([\s\S]*)<\/body>/);
-            const bodyContent = bodyMatch ? bodyMatch[1] : container.innerHTML;
+            // Build compact task rows
+            let tasksHTML = '';
+            report.tasks.forEach(task => {
+                const taskDate = task.date ? new Date(task.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+                tasksHTML += `<tr>
+                    <td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:10px;white-space:nowrap;">${taskDate}</td>
+                    <td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:10px;"><strong>${escapeHTML(task.name)}</strong> — <em style="color:#555;">${escapeHTML(task.description)}</em></td>
+                    <td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:10px;text-align:right;">${task.hours}</td>
+                </tr>`;
+            });
+
+            // Compact PDF-optimized HTML
+            const pdfHTML = `
+                <div style="font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;line-height:1.3;">
+                    <!-- Header -->
+                    <div style="text-align:center;border-bottom:2px solid #2d3748;padding-bottom:10px;margin-bottom:12px;">
+                        <div style="font-size:14px;font-weight:bold;color:#2d3748;letter-spacing:1px;">PostAcuteNC, PC</div>
+                        <div style="font-size:18px;font-weight:bold;margin:4px 0;">Medical Directorship Billing Report</div>
+                        <div style="font-size:12px;color:#555;">${monthName}</div>
+                    </div>
+
+                    <!-- Provider / Facility Info -->
+                    <table style="width:100%;margin-bottom:12px;">
+                        <tr>
+                            <td style="width:50%;padding:8px;background:#f0f4f8;border-radius:4px;">
+                                <div style="font-size:9px;font-weight:bold;color:#666;text-transform:uppercase;margin-bottom:2px;">Provider</div>
+                                <div style="font-size:13px;font-weight:bold;">${escapeHTML(report.providerName)}</div>
+                            </td>
+                            <td style="width:8px;"></td>
+                            <td style="width:50%;padding:8px;background:#f0f4f8;border-radius:4px;">
+                                <div style="font-size:9px;font-weight:bold;color:#666;text-transform:uppercase;margin-bottom:2px;">Facility</div>
+                                <div style="font-size:13px;font-weight:bold;">${escapeHTML(report.facilityName)}</div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Tasks Table -->
+                    <div style="font-size:13px;font-weight:bold;margin-bottom:6px;">Tasks Completed</div>
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:12px;">
+                        <thead>
+                            <tr style="background:#2d3748;color:white;">
+                                <th style="padding:5px 6px;text-align:left;font-size:10px;width:60px;">Date</th>
+                                <th style="padding:5px 6px;text-align:left;font-size:10px;">Task Description</th>
+                                <th style="padding:5px 6px;text-align:right;font-size:10px;width:50px;">Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tasksHTML}</tbody>
+                    </table>
+
+                    <!-- Hours Summary -->
+                    <div style="background:#edf2f7;padding:10px 12px;border-radius:4px;margin-bottom:14px;">
+                        <span style="font-size:12px;font-weight:bold;">Total Hours Logged:</span>
+                        <span style="font-size:14px;font-weight:bold;margin-left:8px;">${report.totalHours.toFixed(1)}</span>
+                    </div>
+
+                    <!-- Signature -->
+                    <div style="border:1.5px solid #2d3748;border-radius:4px;padding:10px 14px;page-break-inside:avoid;">
+                        <div style="font-size:11px;font-weight:bold;margin-bottom:4px;">Electronic Signature</div>
+                        <div style="font-family:'Brush Script MT',cursive;font-size:24px;margin:6px 0;">${escapeHTML(report.signature)}</div>
+                        <div style="font-size:9px;color:#666;">
+                            Signed on: ${new Date(report.signedDate).toLocaleString()}<br>
+                            I certify that the information provided above is accurate and complete.
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="text-align:center;font-size:8px;color:#999;margin-top:10px;">
+                        This is an electronically generated report. No physical signature required.
+                    </div>
+                </div>
+            `;
 
             const printDiv = document.createElement('div');
-            printDiv.innerHTML = bodyContent;
-            printDiv.style.cssText = 'font-family: Arial, sans-serif; padding: 40px; max-width: 900px;';
+            printDiv.innerHTML = pdfHTML;
+            printDiv.style.cssText = 'font-family:Arial,sans-serif;padding:0;width:720px;';
             document.body.appendChild(printDiv);
 
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: [12, 14, 12, 14],
                 filename: 'report.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true, width: 720 },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
             try {
