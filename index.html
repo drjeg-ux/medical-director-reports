@@ -337,6 +337,26 @@
             margin-bottom: 20px;
         }
 
+        /* Fixed-position toast notification visible from any tab */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        }
+
+        #toastContainer .alert {
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         .alert.success {
             background: #c6f6d5;
             color: #22543d;
@@ -359,6 +379,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
+            align-items: start;
         }
 
         .settings-card {
@@ -739,6 +760,7 @@
     </style>
 </head>
 <body>
+    <div id="toastContainer"></div>
     <div class="container">
         <div class="header">
             <h1>📋 Medical Directorship Billing Reports</h1>
@@ -1673,9 +1695,22 @@
 
         // Show alert
         function showAlert(message, type = 'success') {
+            // Show in the create-tab alert area if visible
             const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert ${type}">${escapeHTML(message)}</div>`;
-            setTimeout(() => container.innerHTML = '', 5000);
+            if (container) {
+                container.innerHTML = `<div class="alert ${type}">${escapeHTML(message)}</div>`;
+                setTimeout(() => container.innerHTML = '', 5000);
+            }
+
+            // Always also show as a fixed toast notification (visible from any tab)
+            const toast = document.getElementById('toastContainer');
+            if (toast) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${type}`;
+                alertDiv.textContent = message;
+                toast.appendChild(alertDiv);
+                setTimeout(() => { if (alertDiv.parentNode) alertDiv.remove(); }, 4000);
+            }
         }
 
         // Save and Generate Report (combined function)
