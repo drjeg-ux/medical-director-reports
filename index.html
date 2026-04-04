@@ -1582,45 +1582,23 @@
             }
         }
 
-        // Open Settings with password
+        // Open Settings without password
         async function openSettings() {
-            const password = await showPasswordModal('Admin Access Required', 'Enter admin password to access settings');
-
-            if (!password) return;
-            const inputHash = await hashPassword(password);
-            if (inputHash !== appData.adminPasswordHash) {
-                showAlert('Incorrect password. Access denied.', 'error');
-                return;
-            }
-
-            // Show settings tab
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById('settings-tab').classList.add('active');
             updateSettingsLists();
-            initAutoGenerator(); // Initialize auto-generator dropdowns
+            initAutoGenerator();
         }
 
         // Tab switching
         async function switchTab(tab) {
-            // Password protect settings tab (no longer needed since tab is hidden)
-            if (tab === 'settings') {
-                const password = await showPasswordModal('Settings Access', 'Enter admin password to access settings');
-
-                if (!password) return;
-                const inputHash = await hashPassword(password);
-                if (inputHash !== appData.adminPasswordHash) {
-                    showAlert('Incorrect password. Access denied.', 'error');
-                    return;
-                }
-            }
-
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
+
             event.target.classList.add('active');
             document.getElementById(`${tab}-tab`).classList.add('active');
-            
+
             if (tab === 'history') {
                 displayHistory();
             } else if (tab === 'settings') {
@@ -2705,14 +2683,14 @@ This is an automatically generated report.
 
             const printDiv = document.createElement('div');
             printDiv.innerHTML = pdfHTML;
-            printDiv.style.cssText = 'font-family:Arial,sans-serif;padding:0;width:720px;';
+            printDiv.style.cssText = 'font-family:Arial,sans-serif;padding:0;width:680px;';
             document.body.appendChild(printDiv);
 
             const opt = {
-                margin: [12, 14, 12, 14],
+                margin: [12, 18, 12, 18],
                 filename: 'report.pdf',
                 image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, width: 720 },
+                html2canvas: { scale: 2, useCORS: true, width: 680 },
                 jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
@@ -2763,7 +2741,7 @@ This is an automatically generated report.
             }
         }
 
-        // Email report with PDF attachment via EmailJS
+        // Email report summary via EmailJS
         async function emailReportWithPDF(reportId) {
             const report = appData.reports.find(r => r.id === reportId);
             if (!report) return;
@@ -2815,18 +2793,10 @@ This is an automatically generated report.
                 return;
             }
 
-            showAlert('Generating PDF and sending email...', 'success');
+            showAlert('Sending email summary...', 'success');
 
             try {
-                // Generate PDF
-                const pdfBlob = await generateReportPDF(report);
-                const pdfBase64 = await blobToBase64(pdfBlob);
-
-                // Build filename
                 const [dYear, dMonth] = report.month.split('-');
-                const monthLabel = new Date(dYear, dMonth - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-');
-                const filename = `${report.providerName.replace(/\s+/g, '-')}_${report.facilityName.replace(/\s+/g, '-')}_${monthLabel}.pdf`;
-
                 const monthName = new Date(dYear, dMonth - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
                 // Initialize EmailJS
@@ -2839,7 +2809,7 @@ This is an automatically generated report.
                     taskSummary += `[${taskDate}] ${task.name} (${task.hours} hrs)\n`;
                 });
 
-                // Send email with PDF attachment
+                // Send email summary without PDF attachment
                 await emailjs.send(config.serviceId, config.templateId, {
                     to_email: toEmail,
                     cc_emails: uniqueCC.join(','),
@@ -2851,12 +2821,12 @@ This is an automatically generated report.
                     total_hours: report.totalHours.toFixed(1),
                     task_summary: taskSummary,
                     signature: report.signature,
-                    message: `Please find attached the Medical Directorship Billing Report for ${report.providerName} at ${report.facilityName} for ${monthName}.\n\nTotal Hours: ${report.totalHours.toFixed(1)}\nSigned by: ${report.signature}`,
-                    attachment: pdfBase64,
-                    attachment_name: filename
+                    message: `Medical Directorship Billing Report for ${report.providerName} at ${report.facilityName} for ${monthName}.\n\nTotal Hours: ${report.totalHours.toFixed(1)}\nSigned by: ${report.signature}`
                 });
 
-                showAlert('Email sent successfully with PDF attachment!', 'success');
+                showAlert('Email summary sent! Use "Download PDF" to save the report file.', 'success');
+
+                setTimeout(() => showPostSaveModal(reportId), 600);
             } catch (error) {
                 console.error('Email error:', error);
                 showAlert('Failed to send email: ' + (error.text || error.message || 'Unknown error'), 'error');
@@ -3668,12 +3638,7 @@ This is an automatically generated report.
 
             showAlert('Report saved successfully!', 'success');
 
-            // Switch to history tab
-            document.getElementById('settings-tab').classList.remove('active');
-            document.getElementById('history-tab').classList.add('active');
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab')[1].classList.add('active');
-            displayHistory();
+            // Stay on settings page for generating more reports
 
             // Offer download
             setTimeout(() => {
